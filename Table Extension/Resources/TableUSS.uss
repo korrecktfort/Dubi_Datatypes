@@ -1,0 +1,79 @@
+VisualElement {}
+
+.table{
+
+}
+
+.table__rows{
+
+}
+
+.table__toolbar{
+	flex-direction: row;
+}
+
+.vertScroll{
+	flex-grow: 1;
+}
+
+.vertScroll__table{
+	
+}
+
+/**Header**/
+.header{
+	flex-direction:row;
+}
+
+.header__spaceToLeft{
+	min-width: 54px;
+}
+
+.header__viewport{
+	flex-grow: 1;
+	overflow: hidden;
+	flex-direction: row;
+}
+
+.header__viewport__container{
+	flex-direction:row;
+}
+
+.header__viewport__container__columnButton {
+	min-width: 200px;
+	width: 200px;
+	margin: 0px;
+	padding: 0px;
+	border-radius: 0px;
+}
+
+
+.entry-line{
+	flex-direction:row;
+}
+
+.entry-line__button{
+	min-width: 20px;
+	height: 20px;
+	border-radius: 0px;
+	align-self: center;
+}
+
+.entry-line__fieldsContainer{
+	flex-direction:row;
+	margin: 0px;
+	padding: 0px;
+}
+
+.entry-line__field {
+	min-width: 200px;
+	width: 200px;
+	border-radius: 0px;
+	margin: 0px;
+	padding: 0px;
+}
+
+.fold-in{
+	min-width: 30px;
+	width: 30px;
+}

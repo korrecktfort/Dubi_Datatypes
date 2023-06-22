@@ -1,0 +1,16 @@
+{
+    "name": "Dubi.RectExtension",
+    "rootNamespace": "",
+    "references": [
+        "GUID:6a2b4fcdf91f6af45bf2f0338ccf9303"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
