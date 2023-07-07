@@ -55,7 +55,7 @@ namespace Dubi.GridElements
             Vector2 origin = GridMatrix().MultiplyPoint3x4(Vector2.zero);
             this.elementsContainer.style.left = new StyleLength(origin.x);
             this.elementsContainer.style.top = new StyleLength(origin.y);
-            this.elementsContainer.style.scale = new StyleScale(new Scale(Vector3.one * this.zoom * 0.1f));
+            this.elementsContainer.style.scale = new StyleScale(new Scale(Vector2.one * this.zoom * 0.1f));
 
             Color colorGridSmall = this.gridColor;
             Color colorGridBig = colorGridSmall;
