@@ -102,26 +102,26 @@ public class PersistentGridElement : GridElement
         Color borderColor = Color.grey;
         float borderRadius = 2.0f;
 
-        base.style.overflow = new StyleEnum<Overflow>(Overflow.Hidden);
-        base.style.position = new StyleEnum<Position>(Position.Relative);
-        base.style.width = new StyleLength(elementSize.x);
-        base.style.height = new StyleLength(elementSize.y);
-        base.style.marginTop = new StyleLength(margin);
-        base.style.marginRight = new StyleLength(margin);
-        base.style.marginBottom = new StyleLength(margin);
-        base.style.marginLeft = new StyleLength(margin);
-        base.style.borderTopWidth = new StyleFloat(borderWidth);
-        base.style.borderRightWidth = new StyleFloat(borderWidth);
-        base.style.borderBottomWidth = new StyleFloat(borderWidth);
-        base.style.borderLeftWidth = new StyleFloat(borderWidth);
-        base.style.borderTopColor = new StyleColor(borderColor);
-        base.style.borderRightColor = new StyleColor(borderColor);
-        base.style.borderBottomColor = new StyleColor(borderColor);
-        base.style.borderLeftColor = new StyleColor(borderColor);
-        base.style.borderTopLeftRadius = new StyleLength(borderRadius);
-        base.style.borderTopRightRadius = new StyleLength(borderRadius);
-        base.style.borderBottomRightRadius = new StyleLength(borderRadius);
-        base.style.borderBottomLeftRadius = new StyleLength(borderRadius);
+        this.style.overflow = new StyleEnum<Overflow>(Overflow.Hidden);
+        this.style.position = new StyleEnum<Position>(Position.Relative);
+        this.style.width = new StyleLength(elementSize.x);
+        this.style.height = new StyleLength(elementSize.y);
+        this.style.marginTop = new StyleLength(margin);
+        this.style.marginRight = new StyleLength(margin);
+        this.style.marginBottom = new StyleLength(margin);
+        this.style.marginLeft = new StyleLength(margin);
+        this.style.borderTopWidth = new StyleFloat(borderWidth);
+        this.style.borderRightWidth = new StyleFloat(borderWidth);
+        this.style.borderBottomWidth = new StyleFloat(borderWidth);
+        this.style.borderLeftWidth = new StyleFloat(borderWidth);
+        this.style.borderTopColor = new StyleColor(borderColor);
+        this.style.borderRightColor = new StyleColor(borderColor);
+        this.style.borderBottomColor = new StyleColor(borderColor);
+        this.style.borderLeftColor = new StyleColor(borderColor);
+        this.style.borderTopLeftRadius = new StyleLength(borderRadius);
+        this.style.borderTopRightRadius = new StyleLength(borderRadius);
+        this.style.borderBottomRightRadius = new StyleLength(borderRadius);
+        this.style.borderBottomLeftRadius = new StyleLength(borderRadius);
 
         this.originFontPos = new Vector2(-2.4f, 0.1f);
         switch (this.gridStart)

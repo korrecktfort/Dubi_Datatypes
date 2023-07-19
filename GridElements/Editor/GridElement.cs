@@ -84,14 +84,30 @@ namespace Dubi.GridElements
             for (int i = 0; i < xCount; i++)
             {
                 Vector3 start = offset + new Vector2(gridSize * i, -gridSize);
+
+                if(start.x < base.layout.xMin || start.x > base.layout.xMax)
+                    continue;
+
                 Vector3 end = offset + new Vector2(gridSize * i, base.contentRect.height + gridSize);
+
+                start.y = base.layout.yMin;
+                end.y = base.layout.yMax;
+
                 Handles.DrawLine(start, end);
             }
 
             for (int h = 0; h < yCount; h++)
             {
                 Vector3 start = offset + new Vector2(-gridSize, gridSize * h);
+
+                if(start.y < base.layout.yMin || start.y > base.layout.yMax)
+                    continue;
+
                 Vector3 end = offset + new Vector2(base.contentRect.width + gridSize, gridSize * h);
+
+                start.x = base.layout.xMin;
+                end.x = base.layout.xMax;
+
                 Handles.DrawLine(start, end);
             }
         }
