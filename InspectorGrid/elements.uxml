@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/elements.uss?fileID=7433441132597879392&amp;guid=240089918fc56d849a4ec9e492a51add&amp;type=3#elements" />
+    <GeometryElement circle-radius="10" distance="95.5" v1-color="#FFFFFFFF" v2-color="#FFFFFFFF" v3-color="#FFFFFFFF" line-thickness="19" line-distance="0" line-offset="12" line-color="#F8720DFF" style="height: 100px; width: 100px; border-left-width: 32px; border-right-width: 32px; border-top-width: 32px; border-bottom-width: 32px;" />
+</ui:UXML>

@@ -1,0 +1,21 @@
+.inspector-grid-element {
+    background-color: rgb(128, 128, 128);
+    overflow: hidden;
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-left-width: 1px;
+    border-right-width: 1px;
+    border-top-width: 1px;
+    border-bottom-width: 1px;
+    border-left-color: rgb(89, 89, 89);
+    border-right-color: rgb(89, 89, 89);
+    border-top-color: rgb(89, 89, 89);
+    border-bottom-color: rgb(89, 89, 89);
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
