@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -14,10 +16,16 @@ public class RectsDrawerElement : InspectorGridElement
         None,
     }
 
+
+    Rect[] localRectsArray = new Rect[1] {new Rect(0, 0, 20, 100)};
+
     Rect[] Rects
     {
         get
         {
+            if(this.rectsProperty == null)
+                return this.localRectsArray;
+
             List<Rect> list = new List<Rect>();
             for (int i = 0; i < this.rectsProperty.arraySize; i++)
             {
@@ -28,6 +36,12 @@ public class RectsDrawerElement : InspectorGridElement
 
         set
         {
+            if(this.rectsProperty == null)
+            {
+                this.localRectsArray = value;
+                return;
+            }   
+
             this.rectsProperty.arraySize = value.Length;
             for (int i = 0; i < value.Length; i++)
             {
@@ -49,9 +63,25 @@ public class RectsDrawerElement : InspectorGridElement
 
     public new class UxmlFactory : UxmlFactory<RectsDrawerElement, UxmlTraits> { }
 
+
+
     public RectsDrawerElement() : base()
     {
         AddToClassList("rects-drawer-element");
+
+        this.RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
+    }
+
+    private void OnKeyDownEvent(KeyDownEvent evt)
+    {
+        if (evt.keyCode == KeyCode.Delete && this.selectedRectIndex != -1)
+        {
+            List<Rect> list = Rects.ToList();
+            list.RemoveAt(this.selectedRectIndex);
+            Rects = list.ToArray();
+            this.selectedRectIndex = -1;
+            base.MarkDirtyRepaint();
+        }
     }
 
     public override void OnGenerateVisualContent(MeshGenerationContext context)
@@ -63,54 +93,139 @@ public class RectsDrawerElement : InspectorGridElement
 
     void DrawRects(MeshGenerationContext context)
     {
-        if (this.rectsProperty == null)
-            return;
-
         Rect[] rects = Rects;
 
-        if (rects == null || rects.Length == 0)
+        if (rects == null)
             return;
 
         MeshContainer rectsContainer = new MeshContainer(context);
 
         for (int i = 0; i < rects.Length; i++)
-            if(this.selectedRectIndex == i)
-                rectsContainer.AddRect(this.manipulationRect, this.selectedColor, -1.0f, 2.0f);
+            if (this.selectedRectIndex == i)
+                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor, 0.0f, 5.0f);
             else
-                rectsContainer.AddRect(rects[i], this.rectColor, -1.0f, 2.0f);
-                
-        if (this.toolState == ToolState.Drawing)
-            rectsContainer.AddRect(this.manipulationRect, this.manipulationRectColor, -1.0f, 2.0f);
-    }
+                rectsContainer.AddRect(ToElementSpace(rects[i]), this.rectColor, 0.0f, 5.0f);
+
+        if (this.toolState == ToolState.Drawing)            
+            rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor, 0.0f, 5.0f);
+
+        Debug.Log(ToElementSpace(this.manipulationRect));
+    }        
 
     public override void OnMouseDown(MouseDownEvent evt)
     {
         base.OnMouseDown(evt);
-
-        if(evt.pressedButtons != 1)
-            return;
-
-        /// Select/Deselect
-        int selection = SelectionIndex(Rects, base.MouseGridPosition);
-        if(selection != this.selectedRectIndex)
+        
+        if(evt.pressedButtons == 1)
         {
-            switch(selection)
+            /// Select/Deselect
+            this.selectedRectIndex = SelectionIndex(Rects, base.MouseGridPosition);        
+        
+            switch(this.selectedRectIndex)
             {
                 case -1:
-                    this.toolState = ToolState.Drawing;
+                    this.toolState = ToolState.Drawing;                    
                     this.manipulationRect = new Rect(base.MouseSnappedGridPosition, Vector2.zero);
                     break;
                 default:
-                    this.manipulationRect = Rects[selection];
-                    this.dragOffset = base.MouseGridPosition - this.manipulationRect.position;
+                    this.manipulationRect = Rects[this.selectedRectIndex];
+                    this.dragOffset = base.MouseSnappedGridPosition - this.manipulationRect.position;
                     this.toolState = ToolState.Dragging;
                     break;
             }
 
-            this.selectedRectIndex = selection;
             base.MarkDirtyRepaint();
-            return;
+        }        
+    }
+
+    public override void OnMouseMove(MouseMoveEvent evt)
+    {
+        base.OnMouseMove(evt);
+
+        if(evt.pressedButtons == 1)
+        {
+            switch (this.toolState)
+            {
+                case ToolState.Resizing:
+                case ToolState.Drawing:
+                    this.manipulationRect.size = base.MouseSnappedGridPosition - this.manipulationRect.position;                    
+                    break;
+
+                case ToolState.Dragging:
+                    this.manipulationRect.position = base.MouseSnappedGridPosition - this.dragOffset;
+                    break;
+            }
+
+            base.MarkDirtyRepaint();
         }
+    }
+
+    public override void OnMouseUp(MouseUpEvent evt)
+    {
+        base.OnMouseUp(evt);
+
+        if(evt.button == 0)
+        {
+            switch (this.toolState)
+            {
+                case ToolState.Drawing:
+                    if (!RectValid(this.manipulationRect))
+                        break;
+                    
+                    this.manipulationRect = CleanupRect(this.manipulationRect);
+
+                    List<Rect> list = Rects.ToList();
+                    list.Add(new Rect(this.manipulationRect));
+                    Rects = list.ToArray();
+
+                    this.selectedRectIndex = list.Count - 1;                    
+                    break;
+
+                case ToolState.Dragging:                    
+                    Rects[this.selectedRectIndex].position = this.manipulationRect.position;         
+                    break;
+
+                case ToolState.Resizing:
+                    this.manipulationRect = CleanupRect(this.manipulationRect);
+                    if (RectValid(this.manipulationRect))
+                        Rects[this.selectedRectIndex] = this.manipulationRect;
+                    else
+                        this.manipulationRect = Rects[this.selectedRectIndex];
+                    break;
+            }
+
+        }
+
+        base.MarkDirtyRepaint();
+        this.toolState = ToolState.None;
+    }
+
+    bool RectValid(Rect rect)
+    {
+        if (rect == null)
+            return false;
+
+        if (rect.width == 0 || rect.height == 0)
+            return false;
+
+        return true;
+    }
+
+    Rect CleanupRect(Rect rect)
+    {
+        if (rect.width < 0)
+        {
+            rect.x += rect.width;
+            rect.width *= -1;
+        }
+
+        if (rect.height < 0)
+        {
+            rect.y += rect.height;
+            rect.height *= -1;
+        }
+
+        return rect;
     }
 
     int SelectionIndex(Rect[] rects, Vector2 mousePosition)

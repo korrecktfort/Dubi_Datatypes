@@ -34,7 +34,7 @@ public class InspectorGridElement : VisualElement
         set
         {
             this.localMousePos = value;
-            this.mouseSnappedGridPosition = this.mouseGridPosition = PixelGridMatrix.inverse.MultiplyPoint(value);
+            this.mouseSnappedGridPosition = this.mouseGridPosition = GridMatrix.inverse.MultiplyPoint(value);
 
             this.mouseSnappedGridPosition.x = Mathf.Round(this.mouseGridPosition.x / this.mouseSnapPixels) * this.mouseSnapPixels;
             this.mouseSnappedGridPosition.y = Mathf.Round(this.mouseGridPosition.y / this.mouseSnapPixels) * this.mouseSnapPixels;
@@ -49,9 +49,10 @@ public class InspectorGridElement : VisualElement
 
     public Vector2 GridPosition => this.gridPosition;
 
-    Vector2 GridCenter => new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + this.offset;       
+    Vector2 GridCenter => new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + this.offset;    
 
-    Matrix4x4 PixelGridMatrix => Matrix4x4.TRS(this.GridCenter, Quaternion.identity, Vector3.one * this.zoom);
+    Matrix4x4 GridMatrix => Matrix4x4.TRS(this.GridCenter, Quaternion.identity, Vector3.one * this.zoom);
+
 
     #region Grid Element Settings Properties
     public float Zoom
@@ -237,12 +238,12 @@ public class InspectorGridElement : VisualElement
     {
         this.LocalMousePosition = evt.localMousePosition;
 
-        if(evt.pressedButtons == 1 && evt.modifiers == EventModifiers.Shift)
-        {
-            this.offset += evt.mouseDelta;
+        //if(evt.pressedButtons == 1 && evt.modifiers == EventModifiers.Shift)
+        //{
+        //    this.offset += evt.mouseDelta;
 
-            evt.StopImmediatePropagation();
-        }
+        //    evt.StopImmediatePropagation();
+        //}
         
         base.MarkDirtyRepaint();
     }
@@ -279,7 +280,7 @@ public class InspectorGridElement : VisualElement
         context.DrawText(this.gridPosition.ToString("F0"), this.localMousePos - Vector2.up * this.firstGridPpu, this.firstGridPpu, Color.red);
 
         MeshContainer mouse = new MeshContainer(context);
-        Vector2 pos = PixelGridMatrix.MultiplyPoint3x4(new Vector2(this.mouseGridPosition.x, this.mouseGridPosition.y));        
+        Vector2 pos = GridMatrix.MultiplyPoint3x4(new Vector2(this.mouseGridPosition.x, this.mouseGridPosition.y));        
         Vector2 size = Vector2.one * this.posSize * this.zoom;
         Rect rect = new Rect(pos - size * 0.5f, size);
         mouse.AddRect(rect, Color.red);
@@ -342,11 +343,16 @@ public class InspectorGridElement : VisualElement
     }
 
     #region Transformations
+    public Rect ToElementSpace(Rect rect)
+    {
+        return new Rect(ToElementPosition(rect.position), rect.size * this.zoom);
+    }
+
     //public Vector2 FromGridCoordinateToElementPosition(Vector2 gridCoordinate) => this.GridCenter + FromGridCoordinate(gridCoordinate) * this.zoom;
 
     //public Vector2 FromElementPositionToGridCoordinate(Vector2 elementPosition) => ToGridCoordinate(elementPosition - this.GridCenter) * this.zoom;
 
-    //Vector2 ToElementPosition(Vector2 gridPosition) => this.GridCenter + gridPosition * this.zoom;
+    Vector2 ToElementPosition(Vector2 gridPosition) => this.GridCenter + gridPosition * this.zoom;
 
     //Vector2 ToGridPosition(Vector2 localElementPosition) => (localElementPosition - this.GridCenter) / this.zoom;
 

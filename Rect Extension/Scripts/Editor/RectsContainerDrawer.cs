@@ -26,20 +26,18 @@ public class RectsContainerDrawer : GridEditorDrawer
         get
         {
             List<Rect> list = new List<Rect>();
-            for (int i = 0; i < this.rects.arraySize; i++)
-            {
+            for (int i = 0; i < this.rects.arraySize; i++)            
                 list.Add(this.rects.GetArrayElementAtIndex(i).rectValue);
-            }
+            
             return list.ToArray();
         }
 
         set
         {
             this.rects.arraySize = value.Length;
-            for (int i = 0; i < value.Length; i++)
-            {
+            for (int i = 0; i < value.Length; i++)            
                 this.rects.GetArrayElementAtIndex(i).rectValue = value[i];
-            }
+            
             this.rects.serializedObject.ApplyModifiedProperties();
         }
     }

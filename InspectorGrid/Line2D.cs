@@ -31,6 +31,8 @@ public class Line2D
     {
         set
         {
+            Vector2 nToPrev = (this.p0 - value.p1).normalized;             
+
             Vector2 v = this.p1 - value.p0;
             Vector3 normal = new Vector2(-v.y, v.x).normalized;
 

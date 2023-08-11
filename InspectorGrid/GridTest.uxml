@@ -1,6 +1,4 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Plugins/Dubi_Datatypes/InspectorGrid/InspectorGridElement.uss?fileID=7433441132597879392&amp;guid=a73dae97684092942bdf5c0b97cb006e&amp;type=3#InspectorGridElement" />
-    <InspectorGridElement ppu="28" padding-correct="1" mouse-snap-unit="100" first-grid-color="#595959FF" second-grid-color="#59595941" zoom="2">
-        <ui:VisualElement style="width: 100px; height: 100px; background-color: rgb(0, 0, 0);" />
-    </InspectorGridElement>
+    <RectsDrawerElement first-grid-color="#595959FF" second-grid-color="#333333FF" padding-correct="1" second-grid-thickness="1" />
 </ui:UXML>
