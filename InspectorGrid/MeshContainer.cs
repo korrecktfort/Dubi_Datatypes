@@ -19,6 +19,15 @@ public class MeshContainer
         this.context = context;
     }
 
+    public void AddRects(Rect[] rects, Color color, float offset = 0.0f, float thickness = 1.0f)
+    {
+        if (rects == null || rects.Length == 0)
+            return;
+
+        for (int i = 0; i < rects.Length; i++)
+            AddRect(rects[i], color, offset, thickness);
+    }
+
     public void AddRect(Rect rect, Color color, float offset = 0.0f, float thickness = 1.0f)
     {
         if (rect == null)

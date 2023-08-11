@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -19,8 +20,10 @@ public class InspectorGridElement : VisualElement
     Color secondGridColor;
     int secondGridThickness = 1;
 
-    Vector2 mouseGridPosition = Vector2.zero;
     Vector2 localMousePos = Vector2.zero;
+    Vector2 mouseGridPosition = Vector2.zero;
+    Vector2 mouseSnappedGridPosition = Vector2.zero;
+    Vector2 gridPosition = Vector2.zero;
     int posSize = 1;
 
     int mouseSnapPixels = 10;
@@ -31,12 +34,20 @@ public class InspectorGridElement : VisualElement
         set
         {
             this.localMousePos = value;
-            this.mouseGridPosition = PixelGridMatrix.inverse.MultiplyPoint(value);
+            this.mouseSnappedGridPosition = this.mouseGridPosition = PixelGridMatrix.inverse.MultiplyPoint(value);
 
-            this.mouseGridPosition.x = Mathf.Round(this.mouseGridPosition.x / this.mouseSnapPixels) * this.mouseSnapPixels;
-            this.mouseGridPosition.y = Mathf.Round(this.mouseGridPosition.y / this.mouseSnapPixels) * this.mouseSnapPixels;
+            this.mouseSnappedGridPosition.x = Mathf.Round(this.mouseGridPosition.x / this.mouseSnapPixels) * this.mouseSnapPixels;
+            this.mouseSnappedGridPosition.y = Mathf.Round(this.mouseGridPosition.y / this.mouseSnapPixels) * this.mouseSnapPixels;
+
+            this.gridPosition = this.mouseGridPosition / this.firstGridPpu;
         }
     }
+
+    public Vector2 MouseGridPosition => this.mouseGridPosition;
+
+    public Vector2 MouseSnappedGridPosition => this.mouseSnappedGridPosition;
+
+    public Vector2 GridPosition => this.gridPosition;
 
     Vector2 GridCenter => new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + this.offset;       
 
@@ -203,7 +214,11 @@ public class InspectorGridElement : VisualElement
         this.generateVisualContent = OnGenerateVisualContent;
 
         this.RegisterCallback<MouseMoveEvent>(OnMouseMove);
-        this.RegisterCallback<WheelEvent>(OnWheel);       
+        this.RegisterCallback<WheelEvent>(OnWheel);    
+        
+        this.RegisterCallback<MouseDownEvent>(OnMouseDown); 
+        this.RegisterCallback<MouseUpEvent>(OnMouseUp);
+
     }
 
     public virtual void OnWheel(WheelEvent evt)
@@ -232,6 +247,18 @@ public class InspectorGridElement : VisualElement
         base.MarkDirtyRepaint();
     }
 
+    public virtual void OnMouseDown(MouseDownEvent evt)
+    {
+        this.LocalMousePosition = evt.localMousePosition;
+        this.CaptureMouse();
+    }
+
+    public virtual void OnMouseUp(MouseUpEvent evt)
+    {
+        this.ReleaseMouse();
+        this.LocalMousePosition = evt.localMousePosition;
+    }
+
     public virtual void OnGenerateVisualContent(MeshGenerationContext context)
     {
         if (!this.offsetSetup)
@@ -247,10 +274,9 @@ public class InspectorGridElement : VisualElement
         DrawMousePosition(context);               
     }
 
-
     void DrawMousePosition(MeshGenerationContext context)
     {
-        context.DrawText((this.mouseGridPosition / this.firstGridPpu).ToString(), this.localMousePos - Vector2.up * this.firstGridPpu, this.firstGridPpu, Color.red);
+        context.DrawText(this.gridPosition.ToString("F0"), this.localMousePos - Vector2.up * this.firstGridPpu, this.firstGridPpu, Color.red);
 
         MeshContainer mouse = new MeshContainer(context);
         Vector2 pos = PixelGridMatrix.MultiplyPoint3x4(new Vector2(this.mouseGridPosition.x, this.mouseGridPosition.y));        
