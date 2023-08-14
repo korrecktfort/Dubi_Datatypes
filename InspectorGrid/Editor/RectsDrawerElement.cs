@@ -17,7 +17,8 @@ public class RectsDrawerElement : InspectorGridElement
     }
 
 
-    Rect[] localRectsArray = new Rect[1] {new Rect(0, 0, 20, 100)};
+    // Rect[] localRectsArray = new Rect[1] {new Rect(0, 0, 20, 100)};
+    Rect[] localRectsArray = new Rect[0]; // {new Rect(0, 0, 20, 100)};
 
     Rect[] Rects
     {
@@ -51,6 +52,22 @@ public class RectsDrawerElement : InspectorGridElement
         }
     }
 
+    bool Focus
+    {
+        get
+        {
+            return ClassListContains("rects-drawer-element--focus");
+        }
+
+        set
+        {
+            if(value)
+                AddToClassList("rects-drawer-element--focus");
+            else
+                RemoveFromClassList("rects-drawer-element--focus");
+        }
+    }
+
     ToolState toolState = ToolState.None;
     Rect manipulationRect = default;
     SerializedProperty rectsProperty = null;
@@ -63,13 +80,25 @@ public class RectsDrawerElement : InspectorGridElement
 
     public new class UxmlFactory : UxmlFactory<RectsDrawerElement, UxmlTraits> { }
 
-
-
     public RectsDrawerElement() : base()
     {
         AddToClassList("rects-drawer-element");
 
+        this.focusable = true;
         this.RegisterCallback<KeyDownEvent>(OnKeyDownEvent);
+
+        this.RegisterCallback<FocusEvent>(OnFocus);
+        this.RegisterCallback<BlurEvent>(OnBlur);
+    }
+
+    private void OnBlur(BlurEvent evt)
+    {
+        Focus = false;
+    }
+
+    private void OnFocus(FocusEvent evt)
+    {
+        Focus = true;
     }
 
     private void OnKeyDownEvent(KeyDownEvent evt)
@@ -102,14 +131,14 @@ public class RectsDrawerElement : InspectorGridElement
 
         for (int i = 0; i < rects.Length; i++)
             if (this.selectedRectIndex == i)
-                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor, 0.0f, 5.0f);
+                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor, 0.0f, 1.0f);
             else
-                rectsContainer.AddRect(ToElementSpace(rects[i]), this.rectColor, 0.0f, 5.0f);
+                rectsContainer.AddRect(ToElementSpace(rects[i]), this.rectColor, 0.0f, 1.0f);
 
         if (this.toolState == ToolState.Drawing)            
-            rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor, 0.0f, 5.0f);
+            rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor, 0.0f, 1.0f);
 
-        Debug.Log(ToElementSpace(this.manipulationRect));
+        //Debug.Log(ToElementSpace(this.manipulationRect));
     }        
 
     public override void OnMouseDown(MouseDownEvent evt)

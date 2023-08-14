@@ -20,6 +20,8 @@ public class InspectorGridElement : VisualElement
     Color secondGridColor;
     int secondGridThickness = 1;
 
+    Color centerGridColor;
+
     Vector2 localMousePos = Vector2.zero;
     Vector2 mouseGridPosition = Vector2.zero;
     Vector2 mouseSnappedGridPosition = Vector2.zero;
@@ -158,6 +160,8 @@ public class InspectorGridElement : VisualElement
             base.MarkDirtyRepaint();
         }
     }
+
+    public Color CenterGridColor { get => centerGridColor; set => centerGridColor = value; }
     #endregion
 
     #region Uxml Classes
@@ -173,6 +177,7 @@ public class InspectorGridElement : VisualElement
         UxmlIntAttributeDescription paddingCorrect = new UxmlIntAttributeDescription {name = "padding-correct", defaultValue = 0 };
         UxmlIntAttributeDescription mouseSnapPixels = new UxmlIntAttributeDescription { name = "mouse-snap-pixels", defaultValue = 10 };
 
+        UxmlColorAttributeDescription centerGridColor = new UxmlColorAttributeDescription { name = "center-grid-color", defaultValue = Color.white };
 
         /// <summary>
         /// First Grid Settings
@@ -197,6 +202,7 @@ public class InspectorGridElement : VisualElement
             element.ZoomStep = zoomStep.GetValueFromBag(bag, cc);
             element.PaddingCorrect = paddingCorrect.GetValueFromBag(bag, cc);
             element.MouseSnapPixels = mouseSnapPixels.GetValueFromBag(bag, cc);
+            element.CenterGridColor = centerGridColor.GetValueFromBag(bag, cc);
 
             element.FirstGridPpu = firstGridPpu.GetValueFromBag(bag, cc);
             element.FirstGridColor = firstGridColor.GetValueFromBag(bag, cc);
@@ -219,7 +225,6 @@ public class InspectorGridElement : VisualElement
         
         this.RegisterCallback<MouseDownEvent>(OnMouseDown); 
         this.RegisterCallback<MouseUpEvent>(OnMouseUp);
-
     }
 
     public virtual void OnWheel(WheelEvent evt)
@@ -270,9 +275,13 @@ public class InspectorGridElement : VisualElement
 
         DrawGrid(context, this.firstGridPpu, this.firstGridColor, this.firstGridThickness);
         DrawGrid(context, this.secondGridPpu, this.SecondGridColor, this.secondGridThickness);
-
-        DrawGridCenter(context);
-        DrawMousePosition(context);               
+        
+        MeshContainer centerGrid = new MeshContainer(context);
+        float size = 2.0f;
+        Rect rect = new Rect(GridCenter - Vector2.one * size * 0.5f, Vector2.one * size);
+        centerGrid.AddRect(rect, this.centerGridColor, 0.0f, size);        
+        
+        // DrawMousePosition(context);               
     }
 
     void DrawMousePosition(MeshGenerationContext context)
@@ -284,15 +293,7 @@ public class InspectorGridElement : VisualElement
         Vector2 size = Vector2.one * this.posSize * this.zoom;
         Rect rect = new Rect(pos - size * 0.5f, size);
         mouse.AddRect(rect, Color.red);
-    }
-
-    void DrawGridCenter(MeshGenerationContext context)
-    {
-        MeshContainer meshContainer = new MeshContainer(context);
-        Vector2 size = Vector2.one * 6.0f * this.zoom;
-        Rect rect = new Rect(GridCenter - size * 0.5f, size);        
-        meshContainer.AddRect(rect, Color.cyan);
-    }
+    }    
 
     void DrawGrid(MeshGenerationContext context, float factor, Color color, float thickness)
     {
@@ -320,7 +321,7 @@ public class InspectorGridElement : VisualElement
             start.y = base.layout.yMin;
             end.y = base.layout.yMax;
 
-            lines.Add(new Line2D(start, end));
+            lines.Add(new Line2D(start, end, ToGridPosition(start).x == 0.0f ? this.centerGridColor : color));
         }
 
         for (int y = 0; y < yCount; y++)
@@ -335,11 +336,12 @@ public class InspectorGridElement : VisualElement
             start.x = base.layout.xMin;
             end.x = base.layout.xMax;
 
-            lines.Add(new Line2D(start, end));
+            lines.Add(new Line2D(start, end, ToGridPosition(start).y == 0.0f ? this.centerGridColor : color));
         }
 
         MeshContainer grid = new MeshContainer(context);
-        grid.AddLines(lines.ToArray(), color, 0.0f, thickness);
+        foreach(Line2D line in lines)
+            grid.AddLine(line, line.Color, 0.0f, thickness);
     }
 
     #region Transformations
@@ -354,10 +356,21 @@ public class InspectorGridElement : VisualElement
 
     Vector2 ToElementPosition(Vector2 gridPosition) => this.GridCenter + gridPosition * this.zoom;
 
-    //Vector2 ToGridPosition(Vector2 localElementPosition) => (localElementPosition - this.GridCenter) / this.zoom;
+    Vector2 ToGridPosition(Vector2 localElementPosition) => (localElementPosition - this.GridCenter) / this.zoom;
 
     //Vector2 ToGridCoordinate(Vector2 gridPosition) => gridPosition / this.firstGridPpu;
 
     //Vector2 FromGridCoordinate(Vector2 gridCoordinate) => gridCoordinate * this.firstGridPpu;
+
+    Vector2[] ToElementPosition(Vector2[] gridPositions)
+    {
+        Vector2 gridCenter = this.GridCenter;
+        for (int i = 0; i < gridPositions.Length; i++)
+        {
+            gridPositions[i] = gridCenter + gridPositions[i];
+        }
+
+        return gridPositions;
+    }
     #endregion
 }

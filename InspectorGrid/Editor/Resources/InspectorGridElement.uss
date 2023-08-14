@@ -1,10 +1,10 @@
 .inspector-grid-element {
     background-color: rgb(128, 128, 128);
     overflow: hidden;
-    border-top-left-radius: 6px;
-    border-bottom-left-radius: 6px;
-    border-top-right-radius: 6px;
-    border-bottom-right-radius: 6px;
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
     border-left-width: 1px;
     border-right-width: 1px;
     border-top-width: 1px;
@@ -21,4 +21,5 @@
 }
 
 .rects-drawer-element {
+    height: 300px;
 }
