@@ -108,6 +108,7 @@ public class RectsDrawerElement : InspectorGridElement
             List<Rect> list = Rects.ToList();
             list.RemoveAt(this.selectedRectIndex);
             Rects = list.ToArray();
+            this.manipulationRect = default;
             this.selectedRectIndex = -1;
             base.MarkDirtyRepaint();
         }
@@ -131,12 +132,25 @@ public class RectsDrawerElement : InspectorGridElement
 
         for (int i = 0; i < rects.Length; i++)
             if (this.selectedRectIndex == i)
-                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor, 0.0f, 1.0f);
+                continue;
             else
                 rectsContainer.AddRect(ToElementSpace(rects[i]), this.rectColor, 0.0f, 1.0f);
 
-        if (this.toolState == ToolState.Drawing)            
-            rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor, 0.0f, 1.0f);
+
+        switch (this.toolState)
+        {
+            case ToolState.Drawing:
+                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor, 0.0f, 1.0f);
+                break;
+
+            default:
+                if(this.manipulationRect != default)
+                    rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor, 0.0f, 1.0f);
+                break;
+        }
+
+        
+
 
         //Debug.Log(ToElementSpace(this.manipulationRect));
     }        

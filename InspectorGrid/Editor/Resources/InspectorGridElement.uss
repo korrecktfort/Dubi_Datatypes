@@ -1,10 +1,10 @@
 .inspector-grid-element {
     background-color: rgb(128, 128, 128);
     overflow: hidden;
-    border-top-left-radius: 2px;
-    border-bottom-left-radius: 2px;
-    border-top-right-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
     border-left-width: 1px;
     border-right-width: 1px;
     border-top-width: 1px;
@@ -22,4 +22,12 @@
 
 .rects-drawer-element {
     height: 300px;
+}
+
+.rects-drawer-element--focus {
+    height: 300px;
+    border-left-color: rgb(204, 204, 204);
+    border-right-color: rgb(204, 204, 204);
+    border-top-color: rgb(204, 204, 204);
+    border-bottom-color: rgb(204, 204, 204);
 }
