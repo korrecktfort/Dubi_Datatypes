@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Plastic.Newtonsoft.Json.Bson;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -76,10 +78,14 @@ public class RectsDrawerElement : InspectorGridElement
     Color manipulationRectColor = Color.yellow;
     int selectedRectIndex = -1;
     Vector2 dragOffset = Vector2.zero;
+    float mouseResizeRange = 10.0f;
+
+    ListView listView = null;
 
     public Color SelectedColor { get => selectedColor; set => selectedColor = value; }
     public Color RectColor { get => rectColor; set => rectColor = value; }
     public Color ManipulationRectColor { get => manipulationRectColor; set => manipulationRectColor = value; }
+    public float MouseResizeRange { get => mouseResizeRange; set => mouseResizeRange = value; }
 
     public new class UxmlFactory : UxmlFactory<RectsDrawerElement, UxmlTraits> { }
 
@@ -91,6 +97,8 @@ public class RectsDrawerElement : InspectorGridElement
 
         UxmlColorAttributeDescription manipulationRectColor = new UxmlColorAttributeDescription { name = "manipulation-rect-color", defaultValue = Color.yellow };
 
+        UxmlFloatAttributeDescription mouseResizeRange = new UxmlFloatAttributeDescription { name = "mouse-resize-range", defaultValue = 10.0f };
+
         public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
         {
             base.Init(ve, bag, cc);
@@ -99,6 +107,7 @@ public class RectsDrawerElement : InspectorGridElement
             element.SelectedColor = selectedRectColor.GetValueFromBag(bag, cc);
             element.RectColor = rectColor.GetValueFromBag(bag, cc);
             element.ManipulationRectColor = manipulationRectColor.GetValueFromBag(bag, cc);
+            element.MouseResizeRange = mouseResizeRange.GetValueFromBag(bag, cc);
         }
     }
 
@@ -118,6 +127,46 @@ public class RectsDrawerElement : InspectorGridElement
         this.rectsProperty = rectsProperty;
     }
 
+    public void InjectListView(ListView listView)
+    {
+        listView.selectedIndicesChanged += OnSelectedIndicesChanged;
+        listView.itemsSourceChanged += OnItemsSourceChanged;     
+        listView.RegisterCallback<SerializedPropertyChangeEvent>(OnSerializedPropertyChanged);
+        listView.itemIndexChanged += OnItemIndexChanged;
+        this.listView = listView;
+    }
+
+    private void OnItemIndexChanged(int arg1, int arg2)
+    {
+        if (this.selectedRectIndex >= -1)
+            this.manipulationRect = Rects[this.selectedRectIndex];
+
+        base.MarkDirtyRepaint();
+    }
+
+    public void InjectLabel(Label label)
+    {
+        label.text = this.rectsProperty.displayName + ":";
+    }
+
+    private void OnSerializedPropertyChanged(SerializedPropertyChangeEvent evt)
+    {
+        if (this.selectedRectIndex >= -1)
+            this.manipulationRect = Rects[this.selectedRectIndex];
+
+        base.MarkDirtyRepaint();
+    }
+
+    private void OnItemsSourceChanged()
+    {
+        base.MarkDirtyRepaint();
+    }
+
+    private void OnSelectedIndicesChanged(IEnumerable<int> enumerable)
+    {
+        SelectRect(enumerable.FirstOrDefault());        
+    }
+
     private void OnBlur(BlurEvent evt)
     {
         DisplayFocussed = false;
@@ -132,6 +181,8 @@ public class RectsDrawerElement : InspectorGridElement
     {
         if (evt.keyCode == KeyCode.Delete && this.selectedRectIndex != -1)
         {
+            this.toolState = ToolState.None;
+
             List<Rect> list = Rects.ToList();
             list.RemoveAt(this.selectedRectIndex);
             Rects = list.ToArray();
@@ -146,6 +197,7 @@ public class RectsDrawerElement : InspectorGridElement
         base.OnGenerateVisualContent(context);
 
         DrawRects(context);
+        DrawManiResizeRect(context);
     }
 
     void DrawRects(MeshGenerationContext context)
@@ -171,11 +223,27 @@ public class RectsDrawerElement : InspectorGridElement
                 break;
 
             default:
-                if(this.manipulationRect != default)
+                if(this.manipulationRect != default)                
                     rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor);
                 break;
         }
     }        
+
+    void DrawManiResizeRect(MeshGenerationContext context)
+    {
+        if (this.manipulationRect == default)
+            return;
+
+        if(this.selectedRectIndex == -1)
+            return;
+
+        Color color = this.toolState == ToolState.Resizing || InResizeManiRange(base.LocalMousePosition) ? this.selectedColor : this.manipulationRectColor;
+
+        MeshContainer meshContainer = new MeshContainer(context);
+        float size = 6.0f;
+        Rect rect = new Rect(this.manipulationRect.max - new Vector2(size, size) * 0.5f, new Vector2(size, size));        
+        meshContainer.AddRect(ToElementSpace(rect), color, 0.0f, 3.0f);
+    }
 
     public override void OnMouseDown(MouseDownEvent evt)
     {
@@ -183,24 +251,41 @@ public class RectsDrawerElement : InspectorGridElement
         
         if(evt.pressedButtons == 1)
         {
-            /// Select/Deselect
-            this.selectedRectIndex = SelectionIndex(Rects, base.MouseGridPosition);        
-        
-            switch(this.selectedRectIndex)
+            if (InResizeManiRange(evt.localMousePosition))
             {
-                case -1:
-                    this.toolState = ToolState.Drawing;                    
-                    this.manipulationRect = new Rect(base.MouseSnappedGridPosition, Vector2.zero);
-                    break;
-                default:
-                    this.manipulationRect = Rects[this.selectedRectIndex];
-                    this.dragOffset = base.MouseSnappedGridPosition - this.manipulationRect.position;
-                    this.toolState = ToolState.Dragging;
-                    break;
+                this.toolState = ToolState.Resizing;
+                return;
             }
 
-            base.MarkDirtyRepaint();
+            /// Select/Deselect
+            SelectRect(SelectionIndex(Rects, base.MouseGridPosition));
         }        
+    }
+
+    void SelectRect(int index)
+    {
+        this.selectedRectIndex = index;
+
+        switch (this.selectedRectIndex)
+        {
+            case -1:
+                this.toolState = ToolState.Drawing;
+                this.manipulationRect = new Rect(base.MouseSnappedGridPosition, Vector2.zero);
+                break;
+
+            default:
+                this.manipulationRect = Rects[this.selectedRectIndex];
+                this.dragOffset = base.MouseSnappedGridPosition - this.manipulationRect.position;
+                this.toolState = ToolState.Dragging;
+                break;
+        }        
+
+        base.MarkDirtyRepaint();
+
+        if(this.listView == null)
+            return;
+
+        this.listView.selectedIndex = this.selectedRectIndex;
     }
 
     public override void OnMouseMove(MouseMoveEvent evt)
@@ -265,6 +350,19 @@ public class RectsDrawerElement : InspectorGridElement
         Rects = array;
         base.MarkDirtyRepaint();
         this.toolState = ToolState.None;
+    }
+
+
+    bool InResizeManiRange(Vector2 mousePosition)
+    {
+        if(this.selectedRectIndex == -1)
+            return false;
+
+        if(this.manipulationRect == default)
+            return false;
+
+        Rect elementRect = ToElementSpace(this.manipulationRect);
+        return Vector2.Distance(elementRect.position + elementRect.size, mousePosition) < this.mouseResizeRange;
     }
 
     bool RectValid(Rect rect)

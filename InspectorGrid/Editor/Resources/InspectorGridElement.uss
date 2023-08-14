@@ -1,3 +1,11 @@
+.inspector-grid-parent {
+    flex-grow: 1;
+    flex-direction: row;
+    height: 300px;
+    margin-top: 3px;
+    margin-bottom: 5px;
+}
+
 .inspector-grid-element {
     background-color: rgb(128, 128, 128);
     overflow: hidden;
@@ -18,10 +26,11 @@
     top: 0;
     right: 0;
     bottom: 0;
+    height: 300px;
+    flex-grow: 1;
 }
 
 .rects-drawer-element {
-    height: 300px;
     position: relative;
     flex-grow: 1;
 }
@@ -35,5 +44,7 @@
 }
 
 .rects-drawer-element-list-view {
-    width: 180px;
+    width: 260px;
+    max-height: 300px;
+    min-width: 260px;
 }

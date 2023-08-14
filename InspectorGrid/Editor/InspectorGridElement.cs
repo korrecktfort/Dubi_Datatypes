@@ -33,6 +33,8 @@ public class InspectorGridElement : VisualElement
 
     public Vector2 LocalMousePosition
     {
+        get => this.localMousePos;
+
         set
         {
             this.localMousePos = value;
@@ -225,6 +227,12 @@ public class InspectorGridElement : VisualElement
         
         this.RegisterCallback<MouseDownEvent>(OnMouseDown); 
         this.RegisterCallback<MouseUpEvent>(OnMouseUp);
+        this.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+    }
+
+    private void OnGeometryChanged(GeometryChangedEvent evt)
+    {
+        SetGridOffset(true);
     }
 
     public virtual void OnWheel(WheelEvent evt)
@@ -267,11 +275,7 @@ public class InspectorGridElement : VisualElement
 
     public virtual void OnGenerateVisualContent(MeshGenerationContext context)
     {
-        if (!this.offsetSetup)
-        {
-            this.offset = -new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + Vector2.one * 20;
-            this.offsetSetup = true;
-        }
+        SetGridOffset(false);
 
         DrawGrid(context, this.firstGridPpu, this.firstGridColor, this.firstGridThickness);
         DrawGrid(context, this.secondGridPpu, this.SecondGridColor, this.secondGridThickness);
@@ -373,4 +377,13 @@ public class InspectorGridElement : VisualElement
         return gridPositions;
     }
     #endregion
+
+    void SetGridOffset(bool force)
+    {
+        if (!this.offsetSetup || force)
+        {
+            this.offset = -new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + Vector2.one * 20;
+            this.offsetSetup = true;
+        }
+    }
 }
