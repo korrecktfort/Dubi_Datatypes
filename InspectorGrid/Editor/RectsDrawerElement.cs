@@ -52,7 +52,7 @@ public class RectsDrawerElement : InspectorGridElement
         }
     }
 
-    bool Focus
+    bool DisplayFocussed
     {
         get
         {
@@ -68,17 +68,39 @@ public class RectsDrawerElement : InspectorGridElement
         }
     }
 
+    SerializedProperty rectsProperty = null;
     ToolState toolState = ToolState.None;
     Rect manipulationRect = default;
-    SerializedProperty rectsProperty = null;
     Color selectedColor = Color.red;
     Color rectColor = Color.cyan;
     Color manipulationRectColor = Color.yellow;
     int selectedRectIndex = -1;
     Vector2 dragOffset = Vector2.zero;
 
+    public Color SelectedColor { get => selectedColor; set => selectedColor = value; }
+    public Color RectColor { get => rectColor; set => rectColor = value; }
+    public Color ManipulationRectColor { get => manipulationRectColor; set => manipulationRectColor = value; }
 
     public new class UxmlFactory : UxmlFactory<RectsDrawerElement, UxmlTraits> { }
+
+    public new class UxmlTraits : InspectorGridElement.UxmlTraits
+    {
+        UxmlColorAttributeDescription selectedRectColor = new UxmlColorAttributeDescription { name = "selected-color", defaultValue = Color.red };
+
+        UxmlColorAttributeDescription rectColor = new UxmlColorAttributeDescription { name = "rect-color", defaultValue = Color.cyan };
+
+        UxmlColorAttributeDescription manipulationRectColor = new UxmlColorAttributeDescription { name = "manipulation-rect-color", defaultValue = Color.yellow };
+
+        public override void Init(VisualElement ve, IUxmlAttributes bag, CreationContext cc)
+        {
+            base.Init(ve, bag, cc);
+
+            RectsDrawerElement element = (RectsDrawerElement)ve;
+            element.SelectedColor = selectedRectColor.GetValueFromBag(bag, cc);
+            element.RectColor = rectColor.GetValueFromBag(bag, cc);
+            element.ManipulationRectColor = manipulationRectColor.GetValueFromBag(bag, cc);
+        }
+    }
 
     public RectsDrawerElement() : base()
     {
@@ -91,14 +113,19 @@ public class RectsDrawerElement : InspectorGridElement
         this.RegisterCallback<BlurEvent>(OnBlur);
     }
 
+    public void BindProperty(SerializedProperty rectsProperty)
+    {
+        this.rectsProperty = rectsProperty;
+    }
+
     private void OnBlur(BlurEvent evt)
     {
-        Focus = false;
+        DisplayFocussed = false;
     }
 
     private void OnFocus(FocusEvent evt)
     {
-        Focus = true;
+        DisplayFocussed = true;
     }
 
     private void OnKeyDownEvent(KeyDownEvent evt)
@@ -134,25 +161,20 @@ public class RectsDrawerElement : InspectorGridElement
             if (this.selectedRectIndex == i)
                 continue;
             else
-                rectsContainer.AddRect(ToElementSpace(rects[i]), this.rectColor, 0.0f, 1.0f);
+                rectsContainer.AddRect(ToElementSpace(rects[i]), this.rectColor);
 
 
         switch (this.toolState)
         {
             case ToolState.Drawing:
-                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor, 0.0f, 1.0f);
+                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor);
                 break;
 
             default:
                 if(this.manipulationRect != default)
-                    rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor, 0.0f, 1.0f);
+                    rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor);
                 break;
         }
-
-        
-
-
-        //Debug.Log(ToElementSpace(this.manipulationRect));
     }        
 
     public override void OnMouseDown(MouseDownEvent evt)
@@ -206,6 +228,7 @@ public class RectsDrawerElement : InspectorGridElement
     public override void OnMouseUp(MouseUpEvent evt)
     {
         base.OnMouseUp(evt);
+        Rect[] array = Rects;
 
         if(evt.button == 0)
         {
@@ -219,19 +242,19 @@ public class RectsDrawerElement : InspectorGridElement
 
                     List<Rect> list = Rects.ToList();
                     list.Add(new Rect(this.manipulationRect));
-                    Rects = list.ToArray();
+                    array = list.ToArray();
 
-                    this.selectedRectIndex = list.Count - 1;                    
+                    this.selectedRectIndex = array.Length - 1;                    
                     break;
 
-                case ToolState.Dragging:                    
-                    Rects[this.selectedRectIndex].position = this.manipulationRect.position;         
+                case ToolState.Dragging:
+                    array[this.selectedRectIndex].position = this.manipulationRect.position;                    
                     break;
 
                 case ToolState.Resizing:
                     this.manipulationRect = CleanupRect(this.manipulationRect);
-                    if (RectValid(this.manipulationRect))
-                        Rects[this.selectedRectIndex] = this.manipulationRect;
+                    if (RectValid(this.manipulationRect))                    
+                        array[this.selectedRectIndex] = this.manipulationRect;                                          
                     else
                         this.manipulationRect = Rects[this.selectedRectIndex];
                     break;
@@ -239,6 +262,7 @@ public class RectsDrawerElement : InspectorGridElement
 
         }
 
+        Rects = array;
         base.MarkDirtyRepaint();
         this.toolState = ToolState.None;
     }
@@ -283,29 +307,3 @@ public class RectsDrawerElement : InspectorGridElement
         return -1;
     }
 }
-
-//public class RectElement : VisualElement
-//{
-//    Rect rect = default;
-
-//    public Rect Rect
-//    {
-//        get => rect;
-//        set
-//        {
-//            rect = value;
-            
-//        }
-//    }
-
-//    Matrix4x4 matrix = default;
-
-//    public new class UxmlFactory : UxmlFactory<RectElement, UxmlTraits> { }
-
-//    public RectElement()
-//    {
-//        AddToClassList("rect-element");
-//    }
-
-//    void SetPosition()
-//}

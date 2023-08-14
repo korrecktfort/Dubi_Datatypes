@@ -22,6 +22,8 @@
 
 .rects-drawer-element {
     height: 300px;
+    position: relative;
+    flex-grow: 1;
 }
 
 .rects-drawer-element--focus {
@@ -30,4 +32,8 @@
     border-right-color: rgb(204, 204, 204);
     border-top-color: rgb(204, 204, 204);
     border-bottom-color: rgb(204, 204, 204);
+}
+
+.rects-drawer-element-list-view {
+    width: 180px;
 }

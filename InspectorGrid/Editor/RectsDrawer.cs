@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -14,7 +15,9 @@ public class RectsDrawer : PropertyDrawer
         VisualElement root = new VisualElement();
         root.AddToClassList("rects-drawer-element");
         treeAsset.CloneTree(root);
-
+        SerializedProperty rects = property.FindPropertyRelative("rects");
+        root.Q<RectsDrawerElement>().BindProperty(rects);
+        root.Q<ListView>().BindProperty(rects);
         return root;
     }
 }
