@@ -9,6 +9,7 @@
 .rects-drawer-element {
     position: relative;
     flex-grow: 1;
+    margin-right: 3px;
 }
 
 .rects-drawer-element--focus {
@@ -23,4 +24,8 @@
     width: 260px;
     max-height: 300px;
     min-width: 260px;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
 }

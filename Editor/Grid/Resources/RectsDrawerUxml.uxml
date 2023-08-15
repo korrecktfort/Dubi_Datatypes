@@ -1,8 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/Plugins/Dubi_Datatypes/Editor/Grid/Resources/InspectorGridUSS.uss?fileID=7433441132597879392&amp;guid=a73dae97684092942bdf5c0b97cb006e&amp;type=3#InspectorGridUSS" />
     <Style src="project://database/Assets/Plugins/Dubi_Datatypes/Editor/Grid/Resources/RectsDrawerUSS.uss?fileID=7433441132597879392&amp;guid=86aadf2ac5ae84449ba252996beacd6c&amp;type=3#RectsDrawerUSS" />
-    <ui:Label tabindex="-1" text="Label" display-tooltip-when-elided="true" />
-    <ui:VisualElement name="RectsDrawerParent" class="inspector-grid-parent" style="flex-direction: row;">
+    <ui:Label tabindex="-1" text="Label" display-tooltip-when-elided="true" class="inspector-margin-left" />
+    <ui:VisualElement name="RectsDrawerParent" class="inspector-grid-parent inspector-margin-left" style="flex-direction: row;">
         <RectsDrawerElement first-grid-color="#595959FF" second-grid-color="#333333FF" padding-correct="1" zoom="2.5" first-grid-thickness="1" second-grid-thickness="1" center-grid-color="#FFFFFFFF" selected-color="#00FF3EFF" manipulation-rect-color="#FFF900FF" rect-color="#7EFFFFFF" zoom-step="0.4" mouse-snap-pixels="1" mouse-resize-range="1">
             <ui:Label tabindex="-1" text="n/a" display-tooltip-when-elided="true" name="MouseCoordinateLabel" class="mouse-coordinate-label" />
         </RectsDrawerElement>

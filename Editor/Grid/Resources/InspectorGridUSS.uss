@@ -29,3 +29,10 @@
     color: rgb(255, 255, 255);
     -unity-text-align: upper-right;
 }
+
+.inspector-grid-parent {
+}
+
+.inspector-margin-left {
+    margin-left: 3px;
+}
