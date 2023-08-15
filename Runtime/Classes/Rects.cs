@@ -1,8 +1,9 @@
 using System;
 using UnityEngine;
 
-[Serializable]
 public class Rects
 {
-    public Rect[] rects = new Rect[0];
+    public Rect[] RectsArray => this.rects;
+
+    [SerializeField] Rect[] rects = new Rect[0];
 }

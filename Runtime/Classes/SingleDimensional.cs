@@ -1,26 +1,24 @@
 ﻿using UnityEngine;
 
-namespace Dubi.TableExtension
-{   
-    [System.Serializable]
-    public class SingleDimensional<T>
+  
+[System.Serializable]
+public class SingleDimensional<T>
+{
+    public T[] array = new T[0];
+
+    public SingleDimensional(T[] array)
     {
-        public T[] array = new T[0];
+        this.array = array;
+    }
 
-        public SingleDimensional(T[] array)
+    public void SetRowEntriesLength(int entries)
+    {
+        T[] newArray = new T[entries];
+        for (int i = 0; i < Mathf.Min(this.array.Length, entries); i++)
         {
-            this.array = array;
+            newArray[i] = this.array[i];
         }
 
-        public void SetRowEntriesLength(int entries)
-        {
-            T[] newArray = new T[entries];
-            for (int i = 0; i < Mathf.Min(this.array.Length, entries); i++)
-            {
-                newArray[i] = this.array[i];
-            }
-
-            this.array = newArray;
-        }
-    }    
-}
+        this.array = newArray;
+    }
+}    
