@@ -18,9 +18,7 @@ public class RectsDrawerElement : InspectorGridElement
         None,
     }
 
-
-    // Rect[] localRectsArray = new Rect[1] {new Rect(0, 0, 20, 100)};
-    Rect[] localRectsArray = new Rect[0]; // {new Rect(0, 0, 20, 100)};
+    Rect[] localRectsArray = new Rect[0];
 
     Rect[] Rects
     {
@@ -127,13 +125,24 @@ public class RectsDrawerElement : InspectorGridElement
         this.rectsProperty = rectsProperty;
     }
 
+    #region List View & Events
+
     public void InjectListView(ListView listView)
     {
         listView.selectedIndicesChanged += OnSelectedIndicesChanged;
         listView.itemsSourceChanged += OnItemsSourceChanged;     
         listView.RegisterCallback<SerializedPropertyChangeEvent>(OnSerializedPropertyChanged);
         listView.itemIndexChanged += OnItemIndexChanged;
+        listView.itemsRemoved += ItemsRemoved;
         this.listView = listView;
+    }
+
+    private void ItemsRemoved(IEnumerable<int> obj)
+    {
+        this.selectedRectIndex = -1;
+        this.manipulationRect = default;
+
+        base.MarkDirtyRepaint();
     }
 
     private void OnItemIndexChanged(int arg1, int arg2)
@@ -169,32 +178,12 @@ public class RectsDrawerElement : InspectorGridElement
 
         SelectRect(enumerable.FirstOrDefault());        
     }
+    #endregion
 
-    private void OnBlur(BlurEvent evt)
-    {
-        DisplayFocussed = false;
-    }
 
-    private void OnFocus(FocusEvent evt)
-    {
-        DisplayFocussed = true;
-    }
 
-    private void OnKeyDownEvent(KeyDownEvent evt)
-    {
-        if (evt.keyCode == KeyCode.Delete && this.selectedRectIndex != -1)
-        {
-            this.toolState = ToolState.None;
 
-            List<Rect> list = Rects.ToList();
-            list.RemoveAt(this.selectedRectIndex);
-            Rects = list.ToArray();
-            this.manipulationRect = default;
-            this.selectedRectIndex = -1;
-            base.MarkDirtyRepaint();
-        }
-    }
-
+    #region Visuals
     public override void OnGenerateVisualContent(MeshGenerationContext context)
     {
         base.OnGenerateVisualContent(context);
@@ -258,17 +247,7 @@ public class RectsDrawerElement : InspectorGridElement
         string rectData = "p:(" + rect.position.x.ToString("F0") + "|" + rect.position.y.ToString("F0") + ")\ns:(" + rect.width.ToString("F0") + "|" + rect.height.ToString("F0") + ")\n" + indexString;
 
         context.DrawText(rectData, GridToElementSpace(rect.position), 12.0f, color);
-    }
-
-    int IndexOf(Rect rect)
-    {
-        List<Rect> list = Rects.ToList();
-
-        if(list.Contains(rect))
-            return Rects.ToList().IndexOf(rect);
-
-        return -1;
-    }
+    }    
 
     void DrawManiResizeRect(MeshGenerationContext context)
     {
@@ -289,6 +268,33 @@ public class RectsDrawerElement : InspectorGridElement
         Rect rect = new Rect(position - new Vector2(size, size) * 0.5f, new Vector2(size, size));
         meshContainer.AddRect(GridToElementSpace(rect), color, 0.0f, 3.0f);
     }
+    #endregion
+
+    #region Own Events
+    private void OnBlur(BlurEvent evt)
+    {
+        DisplayFocussed = false;
+    }
+
+    private void OnFocus(FocusEvent evt)
+    {
+        DisplayFocussed = true;
+    }
+
+    private void OnKeyDownEvent(KeyDownEvent evt)
+    {
+        if (evt.keyCode == KeyCode.Delete && this.selectedRectIndex != -1)
+        {
+            this.toolState = ToolState.None;
+
+            List<Rect> list = Rects.ToList();
+            list.RemoveAt(this.selectedRectIndex);
+            Rects = list.ToArray();
+            this.manipulationRect = default;
+            this.selectedRectIndex = -1;
+            base.MarkDirtyRepaint();
+        }
+    }
 
     public override void OnMouseDown(MouseDownEvent evt)
     {
@@ -307,31 +313,7 @@ public class RectsDrawerElement : InspectorGridElement
         }        
     }
 
-    void SelectRect(int index)
-    {
-        this.selectedRectIndex = index;
-
-        switch (this.selectedRectIndex)
-        {
-            case -1:
-                this.toolState = ToolState.Drawing;
-                this.manipulationRect = new Rect(base.MouseSnappedGridPosition, Vector2.zero);
-                break;
-
-            default:
-                this.manipulationRect = Rects[this.selectedRectIndex];
-                this.dragOffset = base.MouseSnappedGridPosition - this.manipulationRect.position;
-                this.toolState = ToolState.Dragging;
-                break;
-        }        
-
-        base.MarkDirtyRepaint();
-
-        if(this.listView == null)
-            return;
-               
-        this.listView.selectedIndex = this.selectedRectIndex;
-    }
+    
 
     public override void OnMouseMove(MouseMoveEvent evt)
     {
@@ -407,7 +389,34 @@ public class RectsDrawerElement : InspectorGridElement
         base.MarkDirtyRepaint();
         this.toolState = ToolState.None;
     }
+    #endregion
 
+    #region Functions
+    void SelectRect(int index)
+    {
+        this.selectedRectIndex = index;
+
+        switch (this.selectedRectIndex)
+        {
+            case -1:
+                this.toolState = ToolState.Drawing;
+                this.manipulationRect = new Rect(base.MouseSnappedGridPosition, Vector2.zero);
+                break;
+
+            default:
+                this.manipulationRect = Rects[this.selectedRectIndex];
+                this.dragOffset = base.MouseSnappedGridPosition - this.manipulationRect.position;
+                this.toolState = ToolState.Dragging;
+                break;
+        }
+
+        base.MarkDirtyRepaint();
+
+        if (this.listView == null)
+            return;
+
+        this.listView.selectedIndex = this.selectedRectIndex;
+    }
 
     bool InResizeManiRange()
     {
@@ -459,4 +468,15 @@ public class RectsDrawerElement : InspectorGridElement
 
         return -1;
     }
+
+    int IndexOf(Rect rect)
+    {
+        List<Rect> list = Rects.ToList();
+
+        if (list.Contains(rect))
+            return Rects.ToList().IndexOf(rect);
+
+        return -1;
+    }
+    #endregion
 }
