@@ -221,7 +221,7 @@ public class RectsDrawerElement : InspectorGridElement
 
         for (int i = 0; i < rects.Length; i++)
             if (this.selectedRectIndex == i)
-                continue;
+                DrawRectInfo(rectsContainer.Context, rects[i], this.selectedColor, true);
             else
                 DrawRect(rectsContainer, rects[i], this.rectColor);
 
@@ -239,14 +239,35 @@ public class RectsDrawerElement : InspectorGridElement
                 break;
         }
     }
-
-    void DrawRect(MeshContainer container, Rect rect, Color color)
+       
+    void DrawRect(MeshContainer container, Rect rect, Color color, bool skipRectInfo = false)
     {
         container.AddRect(GridToElementSpace(rect), color);
                 
-        string rectData = "p:(" + rect.position.x.ToString("F0") + "|" + rect.position.y.ToString("F0") + ")\ns:(" + rect.width.ToString("F0") + "|" + rect.height.ToString("F0") + ")";
+        if(!skipRectInfo)
+            DrawRectInfo(container.Context, rect, color);
+    }
+        
+    void DrawRectInfo(MeshGenerationContext context, Rect rect, Color color, bool skipRectInfo = false)
+    {
+        if (skipRectInfo)
+            return; 
 
-        container.Context.DrawText(rectData, GridToElementSpace(rect.position), 12.0f, color);
+        int index = IndexOf(rect);
+        string indexString = "i:" + (index == -1 ? "n/a" : index.ToString());
+        string rectData = "p:(" + rect.position.x.ToString("F0") + "|" + rect.position.y.ToString("F0") + ")\ns:(" + rect.width.ToString("F0") + "|" + rect.height.ToString("F0") + ")\n" + indexString;
+
+        context.DrawText(rectData, GridToElementSpace(rect.position), 12.0f, color);
+    }
+
+    int IndexOf(Rect rect)
+    {
+        List<Rect> list = Rects.ToList();
+
+        if(list.Contains(rect))
+            return Rects.ToList().IndexOf(rect);
+
+        return -1;
     }
 
     void DrawManiResizeRect(MeshGenerationContext context)
