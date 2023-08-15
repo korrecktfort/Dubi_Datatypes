@@ -9,6 +9,8 @@ public class MeshContainer
     ushort[] indices = new ushort[0];
     //float pixelOffset = 1.0f;
 
+    public MeshGenerationContext Context => this.context;
+
     public int VertexCount => this.vertices == null ? 0 : this.vertices.Length;
 
     public MeshContainer(MeshGenerationContext context)

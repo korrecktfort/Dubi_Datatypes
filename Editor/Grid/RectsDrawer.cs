@@ -20,6 +20,7 @@ public class RectsDrawer : PropertyDrawer
         root.Q<ListView>().BindProperty(rects);
         root.Q<RectsDrawerElement>().InjectListView(root.Q<ListView>());
         root.Q<RectsDrawerElement>().InjectLabel(root.Q<Label>());
+        root.Q<RectsDrawerElement>().InjectMouseCoordinateLabel(root.Q<Label>("MouseCoordinateLabel"));
         return root;
     }
 }

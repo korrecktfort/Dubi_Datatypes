@@ -78,7 +78,7 @@ public class RectsDrawerElement : InspectorGridElement
     Color manipulationRectColor = Color.yellow;
     int selectedRectIndex = -1;
     Vector2 dragOffset = Vector2.zero;
-    float mouseResizeRange = 10.0f;
+    float mouseResizeRange = 15.0f;
 
     ListView listView = null;
 
@@ -138,7 +138,7 @@ public class RectsDrawerElement : InspectorGridElement
 
     private void OnItemIndexChanged(int arg1, int arg2)
     {
-        if (this.selectedRectIndex >= -1)
+        if (this.selectedRectIndex > -1)
             this.manipulationRect = Rects[this.selectedRectIndex];
 
         base.MarkDirtyRepaint();
@@ -164,6 +164,9 @@ public class RectsDrawerElement : InspectorGridElement
 
     private void OnSelectedIndicesChanged(IEnumerable<int> enumerable)
     {
+        if (enumerable.Count() == 0)
+            return;        
+
         SelectRect(enumerable.FirstOrDefault());        
     }
 
@@ -198,6 +201,13 @@ public class RectsDrawerElement : InspectorGridElement
 
         DrawRects(context);
         DrawManiResizeRect(context);
+
+        /// Mani Rect Position
+        if (this.toolState == ToolState.Drawing)
+            DrawMiniRect(context, this.manipulationRect.position, 0.1f, this.manipulationRectColor);
+
+        /// Mouse Position
+        DrawMiniRect(context, base.MouseSnappedGridPosition, 0.1f, Color.red);
     }
 
     void DrawRects(MeshGenerationContext context)
@@ -213,21 +223,31 @@ public class RectsDrawerElement : InspectorGridElement
             if (this.selectedRectIndex == i)
                 continue;
             else
-                rectsContainer.AddRect(ToElementSpace(rects[i]), this.rectColor);
+                DrawRect(rectsContainer, rects[i], this.rectColor);
 
 
         switch (this.toolState)
         {
-            case ToolState.Drawing:
-                rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.manipulationRectColor);
+            case ToolState.Drawing:                    
+                    DrawRect(rectsContainer, this.manipulationRect, this.manipulationRectColor);
                 break;
+                
 
             default:
-                if(this.manipulationRect != default)                
-                    rectsContainer.AddRect(ToElementSpace(this.manipulationRect), this.selectedColor);
+                if(this.manipulationRect != default)
+                    DrawRect(rectsContainer, this.manipulationRect, this.selectedColor);                
                 break;
         }
-    }        
+    }
+
+    void DrawRect(MeshContainer container, Rect rect, Color color)
+    {
+        container.AddRect(GridToElementSpace(rect), color);
+                
+        string rectData = "p:(" + rect.position.x.ToString("F0") + "|" + rect.position.y.ToString("F0") + ")\ns:(" + rect.width.ToString("F0") + "|" + rect.height.ToString("F0") + ")";
+
+        container.Context.DrawText(rectData, GridToElementSpace(rect.position), 12.0f, color);
+    }
 
     void DrawManiResizeRect(MeshGenerationContext context)
     {
@@ -237,12 +257,16 @@ public class RectsDrawerElement : InspectorGridElement
         if(this.selectedRectIndex == -1)
             return;
 
-        Color color = this.toolState == ToolState.Resizing || InResizeManiRange(base.LocalMousePosition) ? this.selectedColor : this.manipulationRectColor;
+        Color color = this.toolState == ToolState.Resizing || InResizeManiRange() ? this.selectedColor : this.manipulationRectColor;
 
-        MeshContainer meshContainer = new MeshContainer(context);
-        float size = 6.0f;
-        Rect rect = new Rect(this.manipulationRect.max - new Vector2(size, size) * 0.5f, new Vector2(size, size));        
-        meshContainer.AddRect(ToElementSpace(rect), color, 0.0f, 3.0f);
+        DrawMiniRect(context, this.manipulationRect.max, 0.3f, color);       
+    }
+
+    void DrawMiniRect(MeshGenerationContext context, Vector2 position, float size, Color color)
+    {
+        MeshContainer meshContainer = new MeshContainer(context);        
+        Rect rect = new Rect(position - new Vector2(size, size) * 0.5f, new Vector2(size, size));
+        meshContainer.AddRect(GridToElementSpace(rect), color, 0.0f, 3.0f);
     }
 
     public override void OnMouseDown(MouseDownEvent evt)
@@ -251,7 +275,7 @@ public class RectsDrawerElement : InspectorGridElement
         
         if(evt.pressedButtons == 1)
         {
-            if (InResizeManiRange(evt.localMousePosition))
+            if (InResizeManiRange())
             {
                 this.toolState = ToolState.Resizing;
                 return;
@@ -284,7 +308,7 @@ public class RectsDrawerElement : InspectorGridElement
 
         if(this.listView == null)
             return;
-
+               
         this.listView.selectedIndex = this.selectedRectIndex;
     }
 
@@ -298,7 +322,15 @@ public class RectsDrawerElement : InspectorGridElement
             {
                 case ToolState.Resizing:
                 case ToolState.Drawing:
-                    this.manipulationRect.size = base.MouseSnappedGridPosition - this.manipulationRect.position;                    
+                    this.manipulationRect.size = base.MouseSnappedGridPosition - this.manipulationRect.position;
+
+                    if (this.selectedRectIndex == -1)
+                        break;
+
+                    Rect[] array = Rects;
+                    array[selectedRectIndex] = CleanupRect(this.manipulationRect);
+                    Rects = array;
+
                     break;
 
                 case ToolState.Dragging:
@@ -321,7 +353,10 @@ public class RectsDrawerElement : InspectorGridElement
             {
                 case ToolState.Drawing:
                     if (!RectValid(this.manipulationRect))
+                    {
+                        this.manipulationRect = default;
                         break;
+                    }
                     
                     this.manipulationRect = CleanupRect(this.manipulationRect);
 
@@ -353,16 +388,15 @@ public class RectsDrawerElement : InspectorGridElement
     }
 
 
-    bool InResizeManiRange(Vector2 mousePosition)
+    bool InResizeManiRange()
     {
         if(this.selectedRectIndex == -1)
             return false;
 
         if(this.manipulationRect == default)
             return false;
-
-        Rect elementRect = ToElementSpace(this.manipulationRect);
-        return Vector2.Distance(elementRect.position + elementRect.size, mousePosition) < this.mouseResizeRange;
+                
+        return Vector2.Distance(this.manipulationRect.max, base.MouseSnappedGridPosition) < this.mouseResizeRange;
     }
 
     bool RectValid(Rect rect)

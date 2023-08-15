@@ -31,6 +31,8 @@ public class InspectorGridElement : VisualElement
     int mouseSnapPixels = 10;
     bool offsetSetup = false;
 
+    Label mouseCoordinateLabel = null;
+
     public Vector2 LocalMousePosition
     {
         get => this.localMousePos;
@@ -38,12 +40,15 @@ public class InspectorGridElement : VisualElement
         set
         {
             this.localMousePos = value;
-            this.mouseSnappedGridPosition = this.mouseGridPosition = GridMatrix.inverse.MultiplyPoint(value);
+            this.mouseSnappedGridPosition = this.mouseGridPosition = ScaleToGridCoordinate(GridMatrix.inverse.MultiplyPoint(value));
 
             this.mouseSnappedGridPosition.x = Mathf.Round(this.mouseGridPosition.x / this.mouseSnapPixels) * this.mouseSnapPixels;
             this.mouseSnappedGridPosition.y = Mathf.Round(this.mouseGridPosition.y / this.mouseSnapPixels) * this.mouseSnapPixels;
 
             this.gridPosition = this.mouseGridPosition / this.firstGridPpu;
+
+            if(this.mouseCoordinateLabel != null)
+                this.mouseCoordinateLabel.text = $"Mouse: {this.mouseSnappedGridPosition.ToString("F2")}";
         }
     }
 
@@ -51,6 +56,7 @@ public class InspectorGridElement : VisualElement
 
     public Vector2 MouseSnappedGridPosition => this.mouseSnappedGridPosition;
 
+    /// In Element Space
     Vector2 GridCenter => new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + this.offset;    
 
     Matrix4x4 GridMatrix => Matrix4x4.TRS(this.GridCenter, Quaternion.identity, Vector3.one * this.zoom);
@@ -217,7 +223,7 @@ public class InspectorGridElement : VisualElement
 
     public InspectorGridElement()
     {
-        AddToClassList("inspector-grid-element");               
+        AddToClassList("inspector-grid-element");
         this.generateVisualContent = OnGenerateVisualContent;
 
         this.RegisterCallback<MouseMoveEvent>(OnMouseMove);
@@ -226,6 +232,11 @@ public class InspectorGridElement : VisualElement
         this.RegisterCallback<MouseDownEvent>(OnMouseDown); 
         this.RegisterCallback<MouseUpEvent>(OnMouseUp);
         this.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+    }
+
+    public void InjectMouseCoordinateLabel(Label label)
+    {
+        this.mouseCoordinateLabel = label;
     }
 
     private void OnGeometryChanged(GeometryChangedEvent evt)
@@ -248,8 +259,8 @@ public class InspectorGridElement : VisualElement
             return;
 
         /// OffsetChange - Cache Grid Position for later use
-        Vector2 cachedGridPosition = this.mouseGridPosition;
-        Vector2 elementPosBefore = ToElementPosition(cachedGridPosition);        
+        Vector2 cachedGridPosition = this.mouseSnappedGridPosition;
+        Vector2 elementPosBefore = GridToElementSpace(cachedGridPosition);        
 
         this.zoom += evt.mouseDelta.y > 0 ? -this.zoomStep : this.zoomStep;
         this.zoom = Mathf.Clamp(this.zoom, this.zoomStep, 5.0f);
@@ -258,7 +269,7 @@ public class InspectorGridElement : VisualElement
         this.LocalMousePosition = evt.localMousePosition;
 
         /// Offset Change - Determine offset change to focus mouse position after zoom
-        Vector2 elementPosAfter = ToElementPosition(cachedGridPosition);  
+        Vector2 elementPosAfter = GridToElementSpace(cachedGridPosition);  
         Vector2 delta = elementPosAfter - elementPosBefore;        
         this.offset -= delta;
 
@@ -343,7 +354,7 @@ public class InspectorGridElement : VisualElement
             start.y = base.layout.yMin;
             end.y = base.layout.yMax;
 
-            lines.Add(new Line2D(start, end, ToGridPosition(start).x == 0.0f ? this.centerGridColor : color));
+            lines.Add(new Line2D(start, end, ToGridPixelPosition(start).x == 0.0f ? this.centerGridColor : color));
         }
 
         for (int y = 0; y < yCount; y++)
@@ -358,7 +369,7 @@ public class InspectorGridElement : VisualElement
             start.x = base.layout.xMin;
             end.x = base.layout.xMax;
 
-            lines.Add(new Line2D(start, end, ToGridPosition(start).y == 0.0f ? this.centerGridColor : color));
+            lines.Add(new Line2D(start, end, ToGridPixelPosition(start).y == 0.0f ? this.centerGridColor : color));
         }
 
         MeshContainer grid = new MeshContainer(context);
@@ -367,9 +378,34 @@ public class InspectorGridElement : VisualElement
     }
 
     #region Transformations
-    public Rect ToElementSpace(Rect rect)
+    Rect ToElementSpace(Rect rect)
     {
         return new Rect(ToElementPosition(rect.position), rect.size * this.zoom);
+    }
+
+    Rect ToGridSpace(Rect rect)
+    {
+        return new Rect(ToGridPixelPosition(rect.position), rect.size / this.zoom);
+    }
+
+    public Rect ElementToGridSpace(Rect rect)
+    {
+        return ToGridSpace(new Rect(ScaleToGridCoordinate(rect.position), ScaleToGridCoordinate(rect.size)));
+    }
+
+    public Rect GridToElementSpace(Rect rect)
+    {
+        return ToElementSpace(new Rect(ScaleToGridPixel(rect.position), ScaleToGridPixel(rect.size)));
+    }
+
+    public Vector2 GridToElementSpace(Vector2 v)
+    {
+        return ToElementPosition(ScaleToGridPixel(v));
+    }
+
+    public Vector2 ElementToGridSpace(Vector2 v)
+    {
+        return ToGridPixelPosition(ScaleToGridCoordinate(v));
     }
 
     //public Vector2 FromGridCoordinateToElementPosition(Vector2 gridCoordinate) => this.GridCenter + FromGridCoordinate(gridCoordinate) * this.zoom;
@@ -378,9 +414,11 @@ public class InspectorGridElement : VisualElement
 
     Vector2 ToElementPosition(Vector2 gridPosition) => this.GridCenter + gridPosition * this.zoom;
 
-    Vector2 ToGridPosition(Vector2 localElementPosition) => (localElementPosition - this.GridCenter) / this.zoom;
+    Vector2 ToGridPixelPosition(Vector2 localElementPosition) => (localElementPosition - this.GridCenter) / this.zoom;
 
-    //Vector2 ToGridCoordinate(Vector2 gridPosition) => gridPosition / this.firstGridPpu;
+    Vector2 ScaleToGridCoordinate(Vector2 value) => value / this.firstGridPpu;
+
+    Vector2 ScaleToGridPixel(Vector2 value) => value * this.firstGridPpu;
 
     //Vector2 FromGridCoordinate(Vector2 gridCoordinate) => gridCoordinate * this.firstGridPpu;
 

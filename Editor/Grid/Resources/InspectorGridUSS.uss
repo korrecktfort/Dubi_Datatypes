@@ -21,3 +21,11 @@
     height: 300px;
     flex-grow: 1;
 }
+
+.mouse-coordinate-label {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    color: rgb(255, 255, 255);
+    -unity-text-align: upper-right;
+}
