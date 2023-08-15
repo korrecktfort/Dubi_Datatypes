@@ -1,11 +1,3 @@
-.inspector-grid-parent {
-    flex-grow: 1;
-    flex-direction: row;
-    height: 300px;
-    margin-top: 3px;
-    margin-bottom: 5px;
-}
-
 .inspector-grid-element {
     background-color: rgb(128, 128, 128);
     overflow: hidden;
@@ -28,23 +20,4 @@
     bottom: 0;
     height: 300px;
     flex-grow: 1;
-}
-
-.rects-drawer-element {
-    position: relative;
-    flex-grow: 1;
-}
-
-.rects-drawer-element--focus {
-    height: 300px;
-    border-left-color: rgb(204, 204, 204);
-    border-right-color: rgb(204, 204, 204);
-    border-top-color: rgb(204, 204, 204);
-    border-bottom-color: rgb(204, 204, 204);
-}
-
-.rects-drawer-element-list-view {
-    width: 260px;
-    max-height: 300px;
-    min-width: 260px;
 }

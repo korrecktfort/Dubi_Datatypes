@@ -1,13 +1,10 @@
 {
-    "name": "Dubi.RectExtension.Editor",
+    "name": "Dubi.Datatypes.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:133bf38abc88fbe4e84a455c7e27fd5b",
-        "GUID:09f9ee5ea0659324fbd59919515c11c6"
+        "GUID:3d21f07bd9605184483f4a6c7c146fc9"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
