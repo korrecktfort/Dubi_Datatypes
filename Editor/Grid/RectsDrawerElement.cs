@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 
 public class RectsDrawerElement : InspectorGridElement
 {
+    #region Enum
     enum ToolState
     {
         Dragging,
@@ -17,9 +18,9 @@ public class RectsDrawerElement : InspectorGridElement
         Resizing,
         None,
     }
+    #endregion
 
-    Rect[] localRectsArray = new Rect[0];
-
+    #region Properties
     Rect[] Rects
     {
         get
@@ -51,7 +52,6 @@ public class RectsDrawerElement : InspectorGridElement
             this.rectsProperty.serializedObject.ApplyModifiedProperties();
         }
     }
-
     bool DisplayFocussed
     {
         get
@@ -67,6 +67,10 @@ public class RectsDrawerElement : InspectorGridElement
                 RemoveFromClassList("rects-drawer-element--focus");
         }
     }
+    #endregion
+
+    #region Fields
+    Rect[] localRectsArray = new Rect[0];
 
     SerializedProperty rectsProperty = null;
     ToolState toolState = ToolState.None;
@@ -77,9 +81,10 @@ public class RectsDrawerElement : InspectorGridElement
     int selectedRectIndex = -1;
     Vector2 dragOffset = Vector2.zero;
     float mouseResizeRange = 15.0f;
-
     ListView listView = null;
+    #endregion
 
+    #region UXML Factory
     public Color SelectedColor { get => selectedColor; set => selectedColor = value; }
     public Color RectColor { get => rectColor; set => rectColor = value; }
     public Color ManipulationRectColor { get => manipulationRectColor; set => manipulationRectColor = value; }
@@ -108,6 +113,7 @@ public class RectsDrawerElement : InspectorGridElement
             element.MouseResizeRange = mouseResizeRange.GetValueFromBag(bag, cc);
         }
     }
+    #endregion
 
     public RectsDrawerElement() : base()
     {
@@ -179,9 +185,6 @@ public class RectsDrawerElement : InspectorGridElement
         SelectRect(enumerable.FirstOrDefault());        
     }
     #endregion
-
-
-
 
     #region Visuals
     public override void OnGenerateVisualContent(MeshGenerationContext context)
