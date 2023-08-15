@@ -253,6 +253,13 @@ public class InspectorGridElement : VisualElement
         }
     }
 
+    public void OffsetFocusGridPosition(Vector2 gridPosition)
+    {
+        /// Set offset to focus element position
+        this.offset = /*-new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f)*/ - ScaleToGridPixel(gridPosition) * this.zoom;
+        base.MarkDirtyRepaint();
+    }
+
     public virtual void OnWheel(WheelEvent evt)
     {
         if(evt.mouseDelta.y == 0.0f)
@@ -260,7 +267,9 @@ public class InspectorGridElement : VisualElement
 
         /// OffsetChange - Cache Grid Position for later use
         Vector2 cachedGridPosition = this.mouseSnappedGridPosition;
-        Vector2 elementPosBefore = GridToElementSpace(cachedGridPosition);        
+        Vector2 elementPosBefore = GridToElementSpace(cachedGridPosition);
+
+        Vector2 cached = this.gridPosition;
 
         this.zoom += evt.mouseDelta.y > 0 ? -this.zoomStep : this.zoomStep;
         this.zoom = Mathf.Clamp(this.zoom, this.zoomStep, 5.0f);
@@ -269,10 +278,9 @@ public class InspectorGridElement : VisualElement
         this.LocalMousePosition = evt.localMousePosition;
 
         /// Offset Change - Determine offset change to focus mouse position after zoom
-        Vector2 elementPosAfter = GridToElementSpace(cachedGridPosition);  
-        Vector2 delta = elementPosAfter - elementPosBefore;        
+        Vector2 elementPosAfter = GridToElementSpace(cachedGridPosition);
+        Vector2 delta = elementPosAfter - elementPosBefore;
         this.offset -= delta;
-
 
         evt.StopImmediatePropagation();
         base.MarkDirtyRepaint();

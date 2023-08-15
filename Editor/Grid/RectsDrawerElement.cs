@@ -182,7 +182,10 @@ public class RectsDrawerElement : InspectorGridElement
         if (enumerable.Count() == 0)
             return;        
 
-        SelectRect(enumerable.FirstOrDefault());        
+        SelectRect(enumerable.FirstOrDefault());
+
+        if(this.manipulationRect != default)
+            base.OffsetFocusGridPosition(this.manipulationRect.center);
     }
     #endregion
 
@@ -249,7 +252,7 @@ public class RectsDrawerElement : InspectorGridElement
         string indexString = "i:" + (index == -1 ? "n/a" : index.ToString());
         string rectData = "p:(" + rect.position.x.ToString("F0") + "|" + rect.position.y.ToString("F0") + ")\ns:(" + rect.width.ToString("F0") + "|" + rect.height.ToString("F0") + ")\n" + indexString;
 
-        context.DrawText(rectData, GridToElementSpace(rect.position), 12.0f, color);
+        context.DrawText(rectData, GridToElementSpace(rect.position) + Vector2.right * 2.0f, 10.0f * Mathf.Min(1.0f, this.Zoom), color);
     }    
 
     void DrawManiResizeRect(MeshGenerationContext context)
