@@ -51,8 +51,6 @@ public class InspectorGridElement : VisualElement
 
     public Vector2 MouseSnappedGridPosition => this.mouseSnappedGridPosition;
 
-    public Vector2 GridPosition => this.gridPosition;
-
     Vector2 GridCenter => new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + this.offset;    
 
     Matrix4x4 GridMatrix => Matrix4x4.TRS(this.GridCenter, Quaternion.identity, Vector3.one * this.zoom);
@@ -232,7 +230,16 @@ public class InspectorGridElement : VisualElement
 
     private void OnGeometryChanged(GeometryChangedEvent evt)
     {
-        SetGridOffset(true);
+        SetGridOffset(true, Vector2.one * 20.0f);
+    }
+
+    void SetGridOffset(bool force, Vector2 localPosition)
+    {
+        if (!this.offsetSetup || force)
+        {
+            this.offset = -new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + localPosition;
+            this.offsetSetup = true;
+        }
     }
 
     public virtual void OnWheel(WheelEvent evt)
@@ -240,9 +247,22 @@ public class InspectorGridElement : VisualElement
         if(evt.mouseDelta.y == 0.0f)
             return;
 
+        /// OffsetChange - Cache Grid Position for later use
+        Vector2 cachedGridPosition = this.mouseGridPosition;
+        Vector2 elementPosBefore = ToElementPosition(cachedGridPosition);        
+
         this.zoom += evt.mouseDelta.y > 0 ? -this.zoomStep : this.zoomStep;
         this.zoom = Mathf.Clamp(this.zoom, this.zoomStep, 5.0f);
-                
+
+        /// Zoom Changed, Update Grid Position
+        this.LocalMousePosition = evt.localMousePosition;
+
+        /// Offset Change - Determine offset change to focus mouse position after zoom
+        Vector2 elementPosAfter = ToElementPosition(cachedGridPosition);  
+        Vector2 delta = elementPosAfter - elementPosBefore;        
+        this.offset -= delta;
+
+
         evt.StopImmediatePropagation();
         base.MarkDirtyRepaint();
     }
@@ -251,13 +271,13 @@ public class InspectorGridElement : VisualElement
     {
         this.LocalMousePosition = evt.localMousePosition;
 
-        //if(evt.pressedButtons == 1 && evt.modifiers == EventModifiers.Shift)
-        //{
-        //    this.offset += evt.mouseDelta;
+        if (evt.pressedButtons == 4)
+        {
+            this.offset += evt.mouseDelta;
 
-        //    evt.StopImmediatePropagation();
-        //}
-        
+            evt.StopImmediatePropagation();
+        }
+
         base.MarkDirtyRepaint();
     }
 
@@ -275,8 +295,6 @@ public class InspectorGridElement : VisualElement
 
     public virtual void OnGenerateVisualContent(MeshGenerationContext context)
     {
-        SetGridOffset(false);
-
         DrawGrid(context, this.firstGridPpu, this.firstGridColor, this.firstGridThickness);
         DrawGrid(context, this.secondGridPpu, this.SecondGridColor, this.secondGridThickness);
         
@@ -378,12 +396,5 @@ public class InspectorGridElement : VisualElement
     }
     #endregion
 
-    void SetGridOffset(bool force)
-    {
-        if (!this.offsetSetup || force)
-        {
-            this.offset = -new Vector2(this.layout.width * 0.5f, this.layout.height * 0.5f) + Vector2.one * 20;
-            this.offsetSetup = true;
-        }
-    }
+  
 }
