@@ -82,6 +82,7 @@ public class RectsDrawerElement : InspectorGridElement
     Vector2 dragOffset = Vector2.zero;
     float mouseResizeRange = 15.0f;
     ListView listView = null;
+    bool skipFocussingSelection = false;
     #endregion
 
     #region UXML Factory
@@ -182,9 +183,9 @@ public class RectsDrawerElement : InspectorGridElement
         if (enumerable.Count() == 0)
             return;        
 
-        SelectRect(enumerable.FirstOrDefault());
+        SelectRect(enumerable.FirstOrDefault(), true);
 
-        if(this.manipulationRect != default)
+        if(this.manipulationRect != default && !this.skipFocussingSelection)
             base.OffsetFocusGridPosition(this.manipulationRect.center);
     }
     #endregion
@@ -315,7 +316,9 @@ public class RectsDrawerElement : InspectorGridElement
             }
 
             /// Select/Deselect
-            SelectRect(SelectionIndex(Rects, base.MouseGridPosition));
+            this.skipFocussingSelection = true;
+            SelectRect(SelectionIndex(Rects, base.MouseGridPosition), false);
+            this.skipFocussingSelection = false;
         }        
     }
 
@@ -398,7 +401,7 @@ public class RectsDrawerElement : InspectorGridElement
     #endregion
 
     #region Functions
-    void SelectRect(int index)
+    void SelectRect(int index, bool skipListSelect)
     {
         this.selectedRectIndex = index;
 
@@ -421,7 +424,8 @@ public class RectsDrawerElement : InspectorGridElement
         if (this.listView == null)
             return;
 
-        this.listView.selectedIndex = this.selectedRectIndex;
+        if(!skipListSelect)
+            this.listView.selectedIndex = this.selectedRectIndex;
     }
 
     bool InResizeManiRange()

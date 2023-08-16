@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 [CustomPropertyDrawer(typeof(Rects))]
-public class RectsDrawer : PropertyDrawer
+public class RectsPropertyDrawer : PropertyDrawer
 {
     public override VisualElement CreatePropertyGUI(SerializedProperty property)
     {
