@@ -99,6 +99,9 @@ public class OffsetPropertyDrawer : PropertyDrawer
 
 
         EditorGUI.BeginChangeCheck();
+        float labelWidth = EditorGUIUtility.labelWidth;
+        EditorGUIUtility.labelWidth = 0.0f;
+
         float value = EditorGUI.FloatField(position, GUIContent.none, property.floatValue);
         if (EditorGUI.EndChangeCheck())
         {
@@ -108,6 +111,8 @@ public class OffsetPropertyDrawer : PropertyDrawer
 
         if (angle != 0.0f)
             GUIUtility.RotateAroundPivot(-angle, position.center);
+
+        EditorGUIUtility.labelWidth = labelWidth;
     }
 
     void Button(Rect position, string icon, Action OnClick, bool useIconString = false)
