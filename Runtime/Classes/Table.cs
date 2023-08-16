@@ -3,40 +3,24 @@
 [System.Serializable]
 public class Table<T>
 {
-
-    #region Properties
-    public string[] Titles
-    {
-        get => this.titles;
-
-        set
-        {
-            this.titles = value;
-            this.data.SetRowEntriesLength(titles.Length);
-        }
-    }
-
-    public SingleDimensional<T>[] Rows
-    {
-        get => this.data.rows;
-        set => this.data.rows = value;
-    }
-     
-    public MultiDimensional<T> Data
-    {
-        get => this.data;
-        set => this.data = value;
-    }
-    #endregion
-
     [SerializeField] string[] titles = new string[0];
     [SerializeField] MultiDimensional<T> data = new MultiDimensional<T>(new T[0][]);
+
+    public Table(params string[] titles)
+    {
+        this.titles = titles;
+        this.data = new MultiDimensional<T>(new T[0][]);
+    }
 }
 
+/// <summary>
+/// Table of data.
+/// </summary>
+/// <typeparam name="T"></typeparam>
 [System.Serializable]
 public class MultiDimensional<T>
 {
-    public SingleDimensional<T>[] rows = new SingleDimensional<T>[0];
+    [SerializeField] SingleDimensional<T>[] rows = new SingleDimensional<T>[0];
 
     public MultiDimensional(T[][] table)
     {
@@ -58,12 +42,12 @@ public class MultiDimensional<T>
     {
         for (int i = 0; i < this.rows.Length; i++)
         {
-            if (this.rows[i].array.Length <= atEntry)
+            if (this.rows[i].Array.Length <= atEntry)
             {
                 return -1;
             }
 
-            if (this.rows[i].array[atEntry].Equals(value))
+            if (this.rows[i].Array[atEntry].Equals(value))
             {
                 return i;
             }
@@ -73,10 +57,15 @@ public class MultiDimensional<T>
     }
 }
 
+/// <summary>
+/// Row of a table.
+/// </summary>
+/// <typeparam name="T"></typeparam>
 [System.Serializable]
 public class SingleDimensional<T>
 {
-    public T[] array = new T[0];
+    [SerializeField] T[] array = new T[0];
+    public T[] Array => this.array;
 
     public SingleDimensional(T[] array)
     {

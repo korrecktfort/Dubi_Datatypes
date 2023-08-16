@@ -1,79 +1,37 @@
-VisualElement {}
-
-.table{
-
+.table-element {
+    transition-duration: 200ms;
 }
 
-.table__rows{
-
+.multi-dimensional-element {
 }
 
-.table__toolbar{
-	flex-direction: row;
+.single-dimensional-element {
+    flex-direction: row;
 }
 
-.vertScroll{
-	flex-grow: 1;
+.single-dimensional-element--folded {
 }
 
-.vertScroll__table{
-	
+.cell {
+    margin-right: 3px;
+    min-width: 50px;
 }
 
-/**Header**/
-.header{
-	flex-direction:row;
+.cell--folded {
 }
 
-.header__spaceToLeft{
-	min-width: 54px;
+.table-element__header-element {
 }
 
-.header__viewport{
-	flex-grow: 1;
-	overflow: hidden;
-	flex-direction: row;
+.table-element__header-content {
 }
 
-.header__viewport__container{
-	flex-direction:row;
+.table-element__body-element {
 }
 
-.header__viewport__container__columnButton {
-	min-width: 200px;
-	width: 200px;
-	margin: 0px;
-	padding: 0px;
-	border-radius: 0px;
+.table-element__add-column-button {
 }
 
-
-.entry-line{
-	flex-direction:row;
-}
-
-.entry-line__button{
-	min-width: 20px;
-	height: 20px;
-	border-radius: 0px;
-	align-self: center;
-}
-
-.entry-line__fieldsContainer{
-	flex-direction:row;
-	margin: 0px;
-	padding: 0px;
-}
-
-.entry-line__field {
-	min-width: 200px;
-	width: 200px;
-	border-radius: 0px;
-	margin: 0px;
-	padding: 0px;
-}
-
-.fold-in{
-	min-width: 30px;
-	width: 30px;
+.cell__property-field__label {
+    width: 15px;
 }
