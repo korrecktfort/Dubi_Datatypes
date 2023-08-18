@@ -96,11 +96,17 @@ public class TableElement : VisualElement
         this.addColumn.AddToClassList("table-element__add-column-button");
         this.headerElement.Add(this.addColumn);
 
+
         /// Setup Header Content
         this.headerContent = new VisualElement() { name = "HeaderContent"};
         this.headerContent.AddToClassList("table-element__header-content");
         this.headerElement.Add(this.headerContent);
         this.headerContent.SendToBack();
+        
+        VisualElement headerSpacer = new VisualElement() { name = "HeaderSpacer"};
+        headerSpacer.AddToClassList("table-element__header-spacer");
+        this.headerElement.Add(headerSpacer);
+        headerSpacer.SendToBack();
 
         /// Setup Body Element
         this.bodyElement = new VisualElement() { name = "Body"};
@@ -121,8 +127,13 @@ public class TableElement : VisualElement
 
             Cell cell = new Cell() { ColumnIndex = index };
 
-            TextField textField = new TextField() { value = this.Titles[i] };
-            textField.RegisterValueChangedCallback((e) => this.Titles[i] = e.newValue);
+            TextField textField = new TextField() { value = this.Titles[cell.ColumnIndex] };
+            textField.RegisterValueChangedCallback((e) =>
+            {
+                string[] titles = this.Titles;
+                titles[cell.ColumnIndex] = e.newValue;
+                Titles = titles;
+            });
 
             cell.InjectContextMenuItems(
                 new ContextMenuItem("Delete Column", () =>

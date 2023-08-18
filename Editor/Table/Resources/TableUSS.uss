@@ -13,7 +13,7 @@
 }
 
 .cell {
-    min-width: 50px;
+    min-width: 100px;
     background-color: rgb(87, 87, 87);
     border-left-color: rgb(43, 43, 43);
     border-right-color: rgb(43, 43, 43);
@@ -22,6 +22,7 @@
     border-right-width: 1px;
     border-bottom-width: 1px;
     padding-left: 5px;
+    padding-right: 2px;
 }
 
 .cell--folded {
@@ -29,6 +30,7 @@
 
 .table-element__header-element {
     flex-direction: row;
+    margin-left: 29px;
 }
 
 .table-element__header-content {
@@ -43,4 +45,7 @@
 
 .cell__property-field__label {
     width: 15px;
+}
+
+.table-element__header-spacer {
 }
