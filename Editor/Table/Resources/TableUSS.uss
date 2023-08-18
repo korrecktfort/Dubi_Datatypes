@@ -13,17 +13,26 @@
 }
 
 .cell {
-    margin-right: 3px;
     min-width: 50px;
+    background-color: rgb(87, 87, 87);
+    border-left-color: rgb(43, 43, 43);
+    border-right-color: rgb(43, 43, 43);
+    border-top-color: rgb(43, 43, 43);
+    border-bottom-color: rgb(43, 43, 43);
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    padding-left: 5px;
 }
 
 .cell--folded {
 }
 
 .table-element__header-element {
+    flex-direction: row;
 }
 
 .table-element__header-content {
+    flex-direction: row;
 }
 
 .table-element__body-element {

@@ -32,12 +32,6 @@ public class MultiDimensional<T>
         }
     }
 
-    public void SetRowEntriesLength(int entries)
-    {
-        foreach (SingleDimensional<T> row in rows)
-            row.SetRowEntriesLength(entries);
-    }
-
     public int GetRow(T value, int atEntry)
     {
         for (int i = 0; i < this.rows.Length; i++)
@@ -70,16 +64,5 @@ public class SingleDimensional<T>
     public SingleDimensional(T[] array)
     {
         this.array = array;
-    }
-
-    public void SetRowEntriesLength(int entries)
-    {
-        T[] newArray = new T[entries];
-        for (int i = 0; i < Mathf.Min(this.array.Length, entries); i++)
-        {
-            newArray[i] = this.array[i];
-        }
-
-        this.array = newArray;
     }
 }

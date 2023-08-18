@@ -73,6 +73,7 @@ public class TableElement : VisualElement
             }    
 
             SerializedProperty titlesProperty = tableProperty.FindPropertyRelative("titles");
+            titlesProperty.arraySize = value.Length;
             for (int i = 0; i < value.Length; i++)
                 titlesProperty.GetArrayElementAtIndex(i).stringValue = value[i];
 
@@ -91,7 +92,7 @@ public class TableElement : VisualElement
         this.headerElement.AddToClassList("table-element__header-element");
         Add(this.headerElement);
 
-        this.addColumn = new Button(() => this.AddColumn()) { text = "Add Column" };
+        this.addColumn = new Button(() => this.AddContentColumn()) { text = "+", tooltip = "Add Column" };
         this.addColumn.AddToClassList("table-element__add-column-button");
         this.headerElement.Add(this.addColumn);
 
@@ -99,30 +100,87 @@ public class TableElement : VisualElement
         this.headerContent = new VisualElement() { name = "HeaderContent"};
         this.headerContent.AddToClassList("table-element__header-content");
         this.headerElement.Add(this.headerContent);
+        this.headerContent.SendToBack();
 
         /// Setup Body Element
         this.bodyElement = new VisualElement() { name = "Body"};
         this.bodyElement.AddToClassList("table-element__body-element");
         Add(this.bodyElement);
 
+        SetupTitles();
         this.bodyElement.Add(new MultiDimensionalElement());
     }
 
-    private void AddColumn()
+    void SetupTitles()
     {
-        this.Query<MultiDimensionalElement>().ForEach((e) => e.AddColumn());        
+        this.headerContent.Clear();
+
+        for (int i = 0; i < this.Titles.Length; i++)
+        {
+            int index = i;
+
+            Cell cell = new Cell() { ColumnIndex = index };
+
+            TextField textField = new TextField() { value = this.Titles[i] };
+            textField.RegisterValueChangedCallback((e) => this.Titles[i] = e.newValue);
+
+            cell.InjectContextMenuItems(
+                new ContextMenuItem("Delete Column", () =>
+                {                    
+                    List<string> list = Titles.ToList();
+                    list.RemoveAt(cell.ColumnIndex);
+                    Titles = list.ToArray();
+                    cell.RemoveFromHierarchy();
+
+                    RemoveContentColumn(cell.ColumnIndex);
+                }
+                ));
+
+            cell.Add(textField);    
+            
+            this.headerContent.Add(cell);
+        }
+    }
+
+    private void AddContentColumn()
+    {
+        List<string> list = Titles.ToList();
+        list.Add("Entry " + (list.Count + 1).ToString("00"));
+        Titles = list.ToArray();
+
+        this.Query<MultiDimensionalElement>().ForEach((e) => e.AddColumn());
+        SetupTitles();
+
+        UpdateColumnIndices();
+    }
+
+    private void RemoveContentColumn(int index)
+    {
+        this.Query<MultiDimensionalElement>().ForEach((e) => e.RemoveColumn(index));
+        UpdateColumnIndices();
     }
 
     public void Inject(SerializedProperty tableProperty)
     {
+        this.tableProperty = tableProperty;
+
         /// Setup Header Element
         this.headerContent.Clear();
+        SetupTitles();
 
         /// Setup Body Element
         this.bodyElement.Clear();
-        this.tableProperty = tableProperty;
-        this.bodyElement.Add(new MultiDimensionalElement(tableProperty.FindPropertyRelative("data")));
-    }  
+        this.bodyElement.Add(new MultiDimensionalElement(tableProperty.FindPropertyRelative("data"), this.Titles.Length));
+    }
+
+    void UpdateColumnIndices()
+    {
+        this.headerContent.Query<Cell>().ForEach(
+        cell =>
+            {
+                cell.ColumnIndex = cell.parent.IndexOf(cell);
+            });
+    }
 }
 
 public class MultiDimensionalElement : ListView
@@ -131,13 +189,17 @@ public class MultiDimensionalElement : ListView
 
     public new class UxmlFactory : UxmlFactory<MultiDimensionalElement, UxmlTraits> { }
 
+    int columns = 0;
+
+    public int Columns { get => columns; set => columns = value; }
+
     public MultiDimensionalElement()
     {
         this.AddToClassList("multi-dimensional-element");
 
         base.fixedItemHeight = EditorGUIUtility.singleLineHeight;
         base.makeItem = () => new SingleDimensionalElement();
-        base.bindItem = (e, i) => (e as SingleDimensionalElement).Inject(this.rowsProperty.GetArrayElementAtIndex(i));
+        base.bindItem = (e, i) => (e as SingleDimensionalElement).Inject(PrepareRowArrayLength(this.rowsProperty.GetArrayElementAtIndex(i), this.columns));
         base.unbindItem = (e, i) => (e as SingleDimensionalElement).Clear();
         base.showBoundCollectionSize = false;
         base.reorderable = true;
@@ -146,10 +208,22 @@ public class MultiDimensionalElement : ListView
         base.virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight;
     }  
 
-    public MultiDimensionalElement(SerializedProperty dataProperty) : this()
+    public MultiDimensionalElement(SerializedProperty dataProperty, int columns) : this()
     {
+        this.columns = columns;
         this.rowsProperty = dataProperty.FindPropertyRelative("rows");
         this.BindProperty(this.rowsProperty);
+
+        RegisterCallback<MouseDownEvent>((evt) => 
+        {
+            switch(evt.button)
+            {
+                case 1:
+                    if (evt.target is Cell cell)
+                        cell.DisplayContextMenu();
+                    break;
+            }
+        });
     }
 
     public void AddColumn()
@@ -157,14 +231,10 @@ public class MultiDimensionalElement : ListView
         if (this.rowsProperty == null)
             return;        
 
-        for (int i = 0; i < this.rowsProperty.arraySize; i++)
-        {
-            SerializedProperty row = this.rowsProperty.GetArrayElementAtIndex(i);
-            SerializedProperty rowArray = row.FindPropertyRelative("array");
-            rowArray.arraySize++;
-        }
-
-        this.rowsProperty.serializedObject.ApplyModifiedProperties();
+        this.columns++;
+        
+        this.Query<SingleDimensionalElement>().ForEach(e => e.AddColumn());
+        
         this.RefreshItems();
     }
 
@@ -173,15 +243,23 @@ public class MultiDimensionalElement : ListView
         if(this.rowsProperty == null)
             return;
 
-        for (int i = 0; i < this.rowsProperty.arraySize; i++)
-        {
-            SerializedProperty row = this.rowsProperty.GetArrayElementAtIndex(i);
-            SerializedProperty rowArray = row.FindPropertyRelative("array");
-            rowArray.DeleteArrayElementAtIndex(index);
-        }
+        this.columns--;
 
-        this.rowsProperty.serializedObject.ApplyModifiedProperties();
+        this.Query<SingleDimensionalElement>().ForEach(e => e.RemoveColumn(index));
+
         this.RefreshItems();
+    }
+
+
+    /// <summary>
+    /// Set the array size of the row according to the length of the columns
+    /// </summary>
+    public SerializedProperty PrepareRowArrayLength(SerializedProperty rowProperty, int length)
+    {
+        SerializedProperty array = rowProperty.FindPropertyRelative("array");
+        array.arraySize = length;
+        array.serializedObject.ApplyModifiedProperties();
+        return rowProperty;
     }
 }
 
@@ -202,6 +280,8 @@ public class SingleDimensionalElement : VisualElement
         }
     }
 
+    SerializedProperty arrayProperty = null;
+
     public SingleDimensionalElement()
     {
         this.AddToClassList("single-dimensional-element");
@@ -209,18 +289,46 @@ public class SingleDimensionalElement : VisualElement
 
     public void Inject(SerializedProperty rowProperty)
     {
-        SerializedProperty cellsProperty = rowProperty.FindPropertyRelative("array");
-        for (int i = 0; i < cellsProperty.arraySize; i++)
+        SerializedProperty arrayProperty = rowProperty.FindPropertyRelative("array");
+        this.arrayProperty = arrayProperty;
+
+        for (int i = 0; i < arrayProperty.arraySize; i++)
         {
-            Cell cell = new Cell();
-            cell.Inject(cellsProperty.GetArrayElementAtIndex(i));
+            int index = i;
+            Cell cell = new Cell() { ColumnIndex = index};
+            cell.Inject(arrayProperty.GetArrayElementAtIndex(i));
             Add(cell);
         }
+    }
+
+    public void AddColumn()
+    {
+        this.arrayProperty.arraySize++;
+        this.arrayProperty.serializedObject.ApplyModifiedProperties();
+
+        UpdateCellIndices();
+    }
+
+    public void RemoveColumn(int index)
+    {
+        this.arrayProperty.DeleteArrayElementAtIndex(index);
+        this.arrayProperty.serializedObject.ApplyModifiedProperties();
+
+        UpdateCellIndices();
+    }
+
+    public void UpdateCellIndices()
+    {
+        this.Query<Cell>().ForEach(
+        cell =>
+        {
+            cell.ColumnIndex = cell.parent.IndexOf(cell);
+        });
     }
 }
 
 public class Cell : VisualElement
-{    
+{   
     public new class UxmlFactory : UxmlFactory<Cell, UxmlTraits> { }
 
     public bool Folded
@@ -236,9 +344,25 @@ public class Cell : VisualElement
         }
     }
 
+    public int ColumnIndex { get => columnIndex; set => columnIndex = value; }
+
+    
+    int columnIndex = -1;
+    List<ContextMenuItem> contextMenuItems = new List<ContextMenuItem>();
+
     public Cell()
     {
         this.AddToClassList("cell");
+
+        RegisterCallback<MouseDownEvent>((evt) =>
+        {
+            switch (evt.button)
+            {
+                case 1:
+                    DisplayContextMenu();
+                    break;
+            }
+        });
     }
 
     public void Inject(SerializedProperty cellProperty)
@@ -246,5 +370,24 @@ public class Cell : VisualElement
         PropertyField propertyField = new PropertyField() { label = ""};
         propertyField.BindProperty(cellProperty);
         Add(propertyField);
+    }
+
+    public void InjectContextMenuItems(params ContextMenuItem[] items)
+    {
+        this.contextMenuItems.AddRange(items);
+
+        
+    }
+
+    public void DisplayContextMenu()
+    {
+        GenericMenu menu = new GenericMenu();
+
+        foreach (var item in this.contextMenuItems)
+        {
+            menu.AddItem(new GUIContent(item.Name), false, () => item.Action());
+        }
+
+        menu.ShowAsContext();
     }
 }
