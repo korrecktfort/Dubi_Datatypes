@@ -6,6 +6,9 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Linq;
 using System;
+using NUnit.Framework.Constraints;
+using Palmmedia.ReportGenerator.Core.Reporting.Builders;
+using Unity.Collections.LowLevel.Unsafe;
 
 public class TableElement : VisualElement
 {
@@ -141,7 +144,6 @@ public class TableElement : VisualElement
                     List<string> list = Titles.ToList();
                     list.RemoveAt(cell.ColumnIndex);
                     Titles = list.ToArray();
-                    cell.RemoveFromHierarchy();
 
                     RemoveContentColumn(cell.ColumnIndex);
                 }
@@ -162,13 +164,22 @@ public class TableElement : VisualElement
         this.Query<MultiDimensionalElement>().ForEach((e) => e.AddColumn());
         SetupTitles();
 
-        UpdateColumnIndices();
+        UpdateCells();
     }
 
     private void RemoveContentColumn(int index)
     {
+        this.Query<Cell>().ForEach((c) =>
+        {
+            if (c.ColumnIndex != index)
+                return;
+
+            c.RemoveFromHierarchy();
+        });
+
         this.Query<MultiDimensionalElement>().ForEach((e) => e.RemoveColumn(index));
-        UpdateColumnIndices();
+
+        UpdateCells();
     }
 
     public void Inject(SerializedProperty tableProperty)
@@ -184,13 +195,29 @@ public class TableElement : VisualElement
         this.bodyElement.Add(new MultiDimensionalElement(tableProperty.FindPropertyRelative("data"), this.Titles.Length));
     }
 
-    void UpdateColumnIndices()
+    void UpdateCells()
     {
-        this.headerContent.Query<Cell>().ForEach(
-        cell =>
-            {
-                cell.ColumnIndex = cell.parent.IndexOf(cell);
-            });
+        this.Query<Cell>().ForEach(cell =>
+        {
+            cell.SetColumnIndex();
+        });
+    }
+
+    public void SetColumnMinWidth(int column)
+    {
+        int minWidth = 0;
+
+        this.Query<Cell>().ForEach(cell =>
+        {
+            if (cell.ColumnIndex == column)
+                minWidth = Mathf.Max(minWidth, (int)cell.layout.width);
+        });
+
+        this.Query<Cell>().ForEach(cell =>
+        {
+            if (cell.ColumnIndex == column)
+                cell.ColumnWidth = minWidth;
+        });
     }
 }
 
@@ -245,7 +272,7 @@ public class MultiDimensionalElement : ListView
         this.columns++;
         
         this.Query<SingleDimensionalElement>().ForEach(e => e.AddColumn());
-        
+
         this.RefreshItems();
     }
 
@@ -260,7 +287,6 @@ public class MultiDimensionalElement : ListView
 
         this.RefreshItems();
     }
-
 
     /// <summary>
     /// Set the array size of the row according to the length of the columns
@@ -315,26 +341,13 @@ public class SingleDimensionalElement : VisualElement
     public void AddColumn()
     {
         this.arrayProperty.arraySize++;
-        this.arrayProperty.serializedObject.ApplyModifiedProperties();
-
-        UpdateCellIndices();
+        this.arrayProperty.serializedObject.ApplyModifiedProperties();        
     }
 
     public void RemoveColumn(int index)
     {
         this.arrayProperty.DeleteArrayElementAtIndex(index);
         this.arrayProperty.serializedObject.ApplyModifiedProperties();
-
-        UpdateCellIndices();
-    }
-
-    public void UpdateCellIndices()
-    {
-        this.Query<Cell>().ForEach(
-        cell =>
-        {
-            cell.ColumnIndex = cell.parent.IndexOf(cell);
-        });
     }
 }
 
@@ -357,8 +370,18 @@ public class Cell : VisualElement
 
     public int ColumnIndex { get => columnIndex; set => columnIndex = value; }
 
-    
-    int columnIndex = -1;
+    public int ColumnWidth
+    {
+        get => columnWidth;
+        set
+        {    
+            this.columnWidth = value;
+            base.style.minWidth = value;
+        }
+    }
+
+    int columnIndex = -1;    
+    int columnWidth = 0;
     List<ContextMenuItem> contextMenuItems = new List<ContextMenuItem>();
 
     public Cell()
@@ -374,6 +397,25 @@ public class Cell : VisualElement
                     break;
             }
         });
+              
+        RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);   
+        RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+    }
+
+    public void OnAttachToPanel(AttachToPanelEvent evt)
+    {
+        SetColumnIndex();
+        RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+    }
+
+    private void OnDetachFromPanel(DetachFromPanelEvent evt)
+    {
+       UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+    }
+
+    public void OnGeometryChanged(GeometryChangedEvent evt)
+    {
+        QueryForParent<TableElement>()?.SetColumnMinWidth(this.columnIndex);
     }
 
     public void Inject(SerializedProperty cellProperty)
@@ -386,8 +428,6 @@ public class Cell : VisualElement
     public void InjectContextMenuItems(params ContextMenuItem[] items)
     {
         this.contextMenuItems.AddRange(items);
-
-        
     }
 
     public void DisplayContextMenu()
@@ -400,5 +440,30 @@ public class Cell : VisualElement
         }
 
         menu.ShowAsContext();
+    }
+
+    public void SetColumnIndex()
+    {
+        this.columnIndex = this.parent.IndexOf(this);
+    }
+
+    T QueryForParent<T>() where T : VisualElement
+    {
+        VisualElement parent = this.parent;
+        int tries = 0;
+
+        do
+        {
+            if (parent is T)
+                return parent as T;
+
+            parent = parent.parent;
+            tries++;
+        } while (parent != null && tries <= 1000);
+
+        if (tries > 1000)
+            throw new Exception("Could not find parent of type " + typeof(T).Name + " within 1000 tries.");
+
+        return null;
     }
 }
