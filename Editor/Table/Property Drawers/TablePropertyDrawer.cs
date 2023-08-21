@@ -1,15 +1,23 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
 [CustomPropertyDrawer(typeof(Table<>), true)]
 public class TablePropertyDrawer : PropertyDrawer
 {
     public override VisualElement CreatePropertyGUI(SerializedProperty property)
     {
+        if (property.objectReferenceValue == null)
+        {
+            property.objectReferenceValue = ScriptableObject.CreateInstance(base.fieldInfo.FieldType);
+            property.serializedObject.ApplyModifiedProperties();
+        }
+
         VisualElement SetupTableElement(Object toSerialize)
         {
             if (toSerialize == null)
@@ -26,6 +34,8 @@ public class TablePropertyDrawer : PropertyDrawer
         }
 
         VisualElement root = new VisualElement();
+        //root.BindProperty(property);
+        //root.style.paddingBottom = new StyleLength(-EditorGUIUtility.singleLineHeight);
         
         PropertyField propertyField = new PropertyField(property);
 

@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using System.Linq;
+
 /// <summary>
 /// Table of data.
 /// </summary>
@@ -18,21 +20,39 @@ public class MultiDimensional<T>
         }
     }
 
-    public int GetRow(T value, int atEntry)
+    public Vector2 GetCoordinate(T item)
     {
-        for (int i = 0; i < this.rows.Length; i++)
+        for (int y = 0; y < this.rows.Length; y++)
         {
-            if (this.rows[i].Array.Length <= atEntry)
+            if (this.rows[y].Array.ToList().Contains(item))
             {
-                return -1;
-            }
-
-            if (this.rows[i].Array[atEntry].Equals(value))
-            {
-                return i;
+                return new Vector2(this.rows[y].Array.ToList().IndexOf(item), y);
             }
         }
 
-        return -1;
+        return -Vector2.one;
+    }
+
+    public bool Contains(T item)
+    {
+        for (int y = 0; y < this.rows.Length; y++)
+        {
+            if (this.rows[y].Array.ToList().Contains(item))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public T Get(int x, int y)
+    {
+        return this.rows[y].Array[x];
+    }
+
+    public T[] Get(int y)
+    {
+        return this.rows[y].Array;
     }
 }

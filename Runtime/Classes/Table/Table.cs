@@ -5,6 +5,8 @@ using UnityEngine;
 [System.Serializable]
 public abstract class Table<T> : ScriptableObject, IJSON
 {
+    public TextAsset TextAsset { get => this.textAsset; set => this.textAsset = value; }
+
     [SerializeField] TextAsset textAsset = null;
     [SerializeField] string[] titles = new string[0];
     [SerializeField] MultiDimensional<T> data = new MultiDimensional<T>(new T[0][]);
@@ -15,27 +17,23 @@ public abstract class Table<T> : ScriptableObject, IJSON
         this.data = new MultiDimensional<T>(new T[0][]);
     }
 
-    public void ToJSON()
+    public T[] Get(int x)
     {
-#if UNITY_EDITOR
-        if(this.textAsset == null)
-            throw new System.Exception("TextAsset is null");
-
-        if (!this.textAsset.name.Contains(".json") && !this.textAsset.name.Contains(".txt"))
-            throw new System.Exception("TextAsset is not a json file");
-
-        File.WriteAllText(AssetDatabase.GetAssetPath(this.textAsset), JsonUtility.ToJson(this));
-#endif
+        return this.data.Get(x);
     }
 
-    public void FromJSON()
+    public T Get(int x, int y)
     {
-        if (this.textAsset == null)
-            throw new System.Exception("TextAsset is null");
+        return this.data.Get(x, y);
+    }
 
-        if (!this.textAsset.name.Contains(".json") && !this.textAsset.name.Contains(".txt"))
-            throw new System.Exception("TextAsset is not a json file");
+    public Vector2 GetCoordinate(T item)
+    {
+        return this.data.GetCoordinate(item);
+    }
 
-        JsonUtility.FromJsonOverwrite(this.textAsset.text, this);
+    public bool Contains(T item)
+    {
+        return this.data.Contains(item);
     }
 }

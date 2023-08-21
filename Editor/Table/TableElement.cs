@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Linq;
+using System.IO;
 
 public class TableElement : VisualElement
 {
@@ -109,24 +110,57 @@ public class TableElement : VisualElement
         headerSpaceIcon.AddToClassList("table-element__options-icon");
         headerSpaceIcon.RegisterCallback<MouseDownEvent>(evt => 
         {
-            GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Read From JSON"), false, () => 
+            if(this.serializedTable.targetObject is IJSON iJSON)
             {
-                if(this.serializedTable.targetObject is IJSON iJSON)
-                {
-                    iJSON.FromJSON();
-                }
-            });
-            
-            menu.AddItem(new GUIContent("Write To JSON"), false, () =>
-            {
-                if(this.serializedTable.targetObject is IJSON iJSON)
-                {
-                    iJSON.ToJSON();
-                }
-            });
+                GenericMenu menu = new GenericMenu();
 
-            menu.ShowAsContext();
+                if (iJSON.HasJSONTable())
+                {
+                    menu.AddItem(new GUIContent("Read From JSON"), false, () => 
+                    {
+                        iJSON.FromJSON();                    
+                    });
+            
+                    menu.AddItem(new GUIContent("Write To JSON"), false, () =>
+                    {
+                        iJSON.ToJSON();                    
+                    });
+
+                    menu.AddSeparator("");
+
+                    menu.AddItem(new GUIContent("Open JSON File"), false, () =>
+                    {
+                        iJSON.OpenJSONFile();
+                    });
+                }
+                
+                menu.AddItem(new GUIContent("Set JSON Table"), false, () =>
+                {
+                    string path = EditorUtility.OpenFilePanel("", "", "");
+                    path = path.Replace(Application.dataPath, "Assets");
+
+                    Object textAsset = AssetDatabase.LoadAssetAtPath<Object>(path);
+
+                    if(textAsset != null)
+                    {
+                        this.serializedTable.FindProperty("textAsset").objectReferenceValue = textAsset;
+                        this.serializedTable.ApplyModifiedProperties();
+                    }
+                });
+
+                menu.AddSeparator("");
+
+                menu.AddItem(new GUIContent("Save Scriptable Object"), false, () =>
+                {
+                    string path = EditorUtility.SaveFilePanelInProject("Save Scriptable Object", "New Scriptable Object", "asset", "");
+                    ScriptableObject newScriptableObject = ScriptableObject.Instantiate(this.serializedTable.targetObject) as ScriptableObject;
+                    AssetDatabase.CreateAsset(newScriptableObject, path);
+                    AssetDatabase.SaveAssets();                  
+                    EditorGUIUtility.PingObject(newScriptableObject);
+                });
+
+                menu.ShowAsContext();                
+            }
         });
         headerSpacer.Add(headerSpaceIcon);
 
