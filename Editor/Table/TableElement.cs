@@ -6,9 +6,6 @@ using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Linq;
 using System;
-using NUnit.Framework.Constraints;
-using Palmmedia.ReportGenerator.Core.Reporting.Builders;
-using Unity.Collections.LowLevel.Unsafe;
 
 public class TableElement : VisualElement
 {
@@ -450,7 +447,7 @@ public class Cell : VisualElement
     T QueryForParent<T>() where T : VisualElement
     {
         VisualElement parent = this.parent;
-        int tries = 0;
+        int steps = 0;
 
         do
         {
@@ -458,11 +455,11 @@ public class Cell : VisualElement
                 return parent as T;
 
             parent = parent.parent;
-            tries++;
-        } while (parent != null && tries <= 1000);
+            steps++;
+        } while (parent != null && steps <= 1000);
 
-        if (tries > 1000)
-            throw new Exception("Could not find parent of type " + typeof(T).Name + " within 1000 tries.");
+        if (steps > 1000)
+            throw new Exception("Could not find parent of type " + typeof(T).Name + " within 1000 steps.");
 
         return null;
     }
