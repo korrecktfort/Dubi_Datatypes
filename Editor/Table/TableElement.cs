@@ -15,6 +15,7 @@ public class TableElement : VisualElement
     VisualElement headerElement = null;
     VisualElement headerContent = null;
     VisualElement bodyElement = null;
+    VisualElement optionsIcon = null;
 
     Button addColumn = null;
     SerializedObject serializedTable = null;
@@ -89,7 +90,7 @@ public class TableElement : VisualElement
         this.AddToClassList("table-element");
 
         /// Setup Header Element
-        this.headerElement = new VisualElement() { name = "Header"};
+        this.headerElement = new VisualElement() { name = "Header" };
         this.headerElement.AddToClassList("table-element__header-element");
         Add(this.headerElement);
 
@@ -97,15 +98,40 @@ public class TableElement : VisualElement
         this.addColumn.AddToClassList("table-element__add-column-button");
         this.headerElement.Add(this.addColumn);
 
-
         /// Setup Header Content
-        this.headerContent = new VisualElement() { name = "HeaderContent"};
+        this.headerContent = new VisualElement() { name = "HeaderContent" };
         this.headerContent.AddToClassList("table-element__header-content");
         this.headerElement.Add(this.headerContent);
         this.headerContent.SendToBack();
-        
-        VisualElement headerSpacer = new VisualElement() { name = "HeaderSpacer"};
+
+        VisualElement headerSpacer = new VisualElement() { name = "HeaderSpacer" };
         headerSpacer.AddToClassList("table-element__header-spacer");
+
+        VisualElement headerSpaceIcon = new VisualElement() { name = "HeaderSpaceIcon" };
+        headerSpaceIcon.AddToClassList("table-element__options-icon");
+        headerSpaceIcon.RegisterCallback<MouseDownEvent>(evt => 
+        {
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent("Read From JSON"), false, () => 
+            {
+                if(this.serializedTable.targetObject is IJSON iJSON)
+                {
+                    iJSON.FromJSON();
+                }
+            });
+            
+            menu.AddItem(new GUIContent("Write To JSON"), false, () =>
+            {
+                if(this.serializedTable.targetObject is IJSON iJSON)
+                {
+                    iJSON.ToJSON();
+                }
+            });
+
+            menu.ShowAsContext();
+        });
+        headerSpacer.Add(headerSpaceIcon);
+
         this.headerElement.Add(headerSpacer);
         headerSpacer.SendToBack();
 
