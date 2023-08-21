@@ -1,5 +1,7 @@
 .table-element {
     transition-duration: 200ms;
+    margin-left: 3px;
+    background-color: rgb(70, 70, 70);
 }
 
 .multi-dimensional-element {

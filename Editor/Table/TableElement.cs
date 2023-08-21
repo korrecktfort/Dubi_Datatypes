@@ -11,24 +11,22 @@ public class TableElement : VisualElement
 {
     string[] testTitles = new string[3] { "Entry 01", "Entry 02", "Entry 03" };
     bool[] testFolded = new bool[3];
-
-    SerializedProperty tableProperty = null;
-
-    Label label = null;
+       
     VisualElement headerElement = null;
     VisualElement headerContent = null;
     VisualElement bodyElement = null;
 
     Button addColumn = null;
+    SerializedObject serializedTable = null;
 
     public bool[] Folded
     {
         get
         {
-            if(this.tableProperty == null)
+            if(this.serializedTable == null)
                 return this.testFolded;
 
-            SerializedProperty foldedProperty = tableProperty.FindPropertyRelative("folded");
+            SerializedProperty foldedProperty = serializedTable.FindProperty("folded");
             bool[] folded = new bool[foldedProperty.arraySize];
             for (int i = 0; i < folded.Length; i++)            
                 folded[i] = foldedProperty.GetArrayElementAtIndex(i).boolValue;
@@ -37,13 +35,13 @@ public class TableElement : VisualElement
 
         set
         {
-            if(this.tableProperty == null)
+            if(this.serializedTable == null)
             {
                 this.testFolded = value;
                 return;
             }
 
-            SerializedProperty foldedProperty = tableProperty.FindPropertyRelative("folded");
+            SerializedProperty foldedProperty = serializedTable.FindProperty("folded");
             for (int i = 0; i < value.Length; i++)
                 foldedProperty.GetArrayElementAtIndex(i).boolValue = value[i];
 
@@ -55,10 +53,10 @@ public class TableElement : VisualElement
     {
         get
         {
-            if(this.tableProperty == null)
+            if(this.serializedTable == null)
                 return this.testTitles;
 
-            SerializedProperty titlesProperty = tableProperty.FindPropertyRelative("titles");
+            SerializedProperty titlesProperty = serializedTable.FindProperty("titles");
             string[] titles = new string[titlesProperty.arraySize];
             for (int i = 0; i < titles.Length; i++)
                 titles[i] = titlesProperty.GetArrayElementAtIndex(i).stringValue;
@@ -67,13 +65,13 @@ public class TableElement : VisualElement
 
         set
         {
-            if(this.tableProperty == null)
+            if(this.serializedTable == null)
             {
                 this.testTitles = value;
                 return;
             }    
 
-            SerializedProperty titlesProperty = tableProperty.FindPropertyRelative("titles");
+            SerializedProperty titlesProperty = serializedTable.FindProperty("titles");
             titlesProperty.arraySize = value.Length;
             for (int i = 0; i < value.Length; i++)
                 titlesProperty.GetArrayElementAtIndex(i).stringValue = value[i];
@@ -85,12 +83,10 @@ public class TableElement : VisualElement
 
     public new class UxmlFactory : UxmlFactory<TableElement, UxmlTraits> { }
 
+
     public TableElement()
     {
         this.AddToClassList("table-element");
-
-        this.label = new Label("Table:");
-        Add(this.label);
 
         /// Setup Header Element
         this.headerElement = new VisualElement() { name = "Header"};
@@ -119,8 +115,10 @@ public class TableElement : VisualElement
         Add(this.bodyElement);
 
         SetupTitles();
-        this.bodyElement.Add(new MultiDimensionalElement());
+        this.bodyElement.Add(new MultiDimensionalElement());        
     }
+
+    #region Titles
 
     void SetupTitles()
     {
@@ -157,6 +155,9 @@ public class TableElement : VisualElement
         }
     }
 
+    #endregion
+
+    #region Columns
     private void AddContentColumn()
     {
         List<string> list = Titles.ToList();
@@ -184,21 +185,6 @@ public class TableElement : VisualElement
         UpdateCells();
     }
 
-    public void Inject(SerializedProperty tableProperty)
-    {
-        this.tableProperty = tableProperty;
-
-        this.label.text = tableProperty.displayName + ":";
-
-        /// Setup Header Element
-        this.headerContent.Clear();
-        SetupTitles();
-
-        /// Setup Body Element
-        this.bodyElement.Clear();
-        this.bodyElement.Add(new MultiDimensionalElement(tableProperty.FindPropertyRelative("data"), this.Titles.Length));
-    }
-
     void UpdateCells()
     {
         this.Query<Cell>().ForEach(cell =>
@@ -223,6 +209,23 @@ public class TableElement : VisualElement
                 cell.ColumnWidth = minWidth;
         });
     }    
+    #endregion
+
+    #region Injection
+    public void Inject(SerializedObject serializedTable)
+    {
+        this.serializedTable = serializedTable;
+
+        /// Setup Header Element
+        this.headerContent.Clear();
+        SetupTitles();
+
+        /// Setup Body Element
+        this.bodyElement.Clear();
+        this.bodyElement.Add(new MultiDimensionalElement(serializedTable.FindProperty("data"), this.Titles.Length));
+    }
+    #endregion    
+
 }
 
 public class MultiDimensionalElement : ListView
