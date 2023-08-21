@@ -14,6 +14,7 @@ public class TableElement : VisualElement
 
     SerializedProperty tableProperty = null;
 
+    Label label = null;
     VisualElement headerElement = null;
     VisualElement headerContent = null;
     VisualElement bodyElement = null;
@@ -81,11 +82,15 @@ public class TableElement : VisualElement
         }
     }
 
+
     public new class UxmlFactory : UxmlFactory<TableElement, UxmlTraits> { }
 
     public TableElement()
     {
         this.AddToClassList("table-element");
+
+        this.label = new Label("Table:");
+        Add(this.label);
 
         /// Setup Header Element
         this.headerElement = new VisualElement() { name = "Header"};
@@ -183,6 +188,8 @@ public class TableElement : VisualElement
     {
         this.tableProperty = tableProperty;
 
+        this.label.text = tableProperty.displayName + ":";
+
         /// Setup Header Element
         this.headerContent.Clear();
         SetupTitles();
@@ -215,7 +222,7 @@ public class TableElement : VisualElement
             if (cell.ColumnIndex == column)
                 cell.ColumnWidth = minWidth;
         });
-    }
+    }    
 }
 
 public class MultiDimensionalElement : ListView
