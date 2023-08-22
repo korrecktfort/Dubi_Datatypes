@@ -1,10 +1,10 @@
-using System;
 using UnityEngine;
 
-[System.Serializable]
-public class Rects
+public class Rects : ScriptableObject, IJSON
 {
     public Rect[] RectsArray => this.rects;
+    public TextAsset TextAsset { get => textAsset; set => textAsset = value; }
 
+    [SerializeField] TextAsset textAsset = null;
     [SerializeField] Rect[] rects = new Rect[0];
 }

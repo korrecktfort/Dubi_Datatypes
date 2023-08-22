@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 using System.Linq;
 using System.IO;
 
-public class TableElement : VisualElement
+public class TableElement : VisualElement, OptionsPropertyFieldBind
 {
     string[] testTitles = new string[3] { "Entry 01", "Entry 02", "Entry 03" };
     bool[] testFolded = new bool[3];
@@ -105,64 +105,6 @@ public class TableElement : VisualElement
 
         VisualElement headerSpacer = new VisualElement() { name = "HeaderSpacer" };
         headerSpacer.AddToClassList("table-element__header-spacer");
-
-        VisualElement headerSpaceIcon = new VisualElement() { name = "HeaderSpaceIcon" };
-        headerSpaceIcon.AddToClassList("table-element__options-icon");
-        headerSpaceIcon.RegisterCallback<MouseDownEvent>(evt => 
-        {
-            if(this.serializedTable.targetObject is IJSON iJSON)
-            {
-                GenericMenu menu = new GenericMenu();
-
-                if (iJSON.HasJSONTable())
-                {
-                    menu.AddItem(new GUIContent("Read From JSON"), false, () => 
-                    {
-                        iJSON.FromJSON();                    
-                    });
-            
-                    menu.AddItem(new GUIContent("Write To JSON"), false, () =>
-                    {
-                        iJSON.ToJSON();                    
-                    });
-
-                    menu.AddSeparator("");
-
-                    menu.AddItem(new GUIContent("Open JSON File"), false, () =>
-                    {
-                        iJSON.OpenJSONFile();
-                    });
-                }
-                
-                menu.AddItem(new GUIContent("Set JSON Table"), false, () =>
-                {
-                    string path = EditorUtility.OpenFilePanel("", "", "");
-                    path = path.Replace(Application.dataPath, "Assets");
-
-                    Object textAsset = AssetDatabase.LoadAssetAtPath<Object>(path);
-
-                    if(textAsset != null)
-                    {
-                        this.serializedTable.FindProperty("textAsset").objectReferenceValue = textAsset;
-                        this.serializedTable.ApplyModifiedProperties();
-                    }
-                });
-
-                menu.AddSeparator("");
-
-                menu.AddItem(new GUIContent("Save Scriptable Object"), false, () =>
-                {
-                    string path = EditorUtility.SaveFilePanelInProject("Save Scriptable Object", "New Scriptable Object", "asset", "");
-                    ScriptableObject newScriptableObject = ScriptableObject.Instantiate(this.serializedTable.targetObject) as ScriptableObject;
-                    AssetDatabase.CreateAsset(newScriptableObject, path);
-                    AssetDatabase.SaveAssets();                  
-                    EditorGUIUtility.PingObject(newScriptableObject);
-                });
-
-                menu.ShowAsContext();                
-            }
-        });
-        headerSpacer.Add(headerSpaceIcon);
 
         this.headerElement.Add(headerSpacer);
         headerSpacer.SendToBack();
@@ -270,17 +212,23 @@ public class TableElement : VisualElement
     #endregion
 
     #region Injection
-    public void Inject(SerializedObject serializedTable)
+    public void BindSerializedObject(SerializedObject serializedObject)
     {
-        this.serializedTable = serializedTable;
+        this.serializedTable = serializedObject;
+
+        this.headerContent.Clear();
+        this.bodyElement.Clear();
+
+        this.style.display = new StyleEnum<DisplayStyle>(serializedObject != null ? DisplayStyle.Flex : DisplayStyle.None);
+
+        if (serializedObject == null)
+            return;
 
         /// Setup Header Element
-        this.headerContent.Clear();
         SetupTitles();
 
         /// Setup Body Element
-        this.bodyElement.Clear();
-        this.bodyElement.Add(new MultiDimensionalElement(serializedTable.FindProperty("data"), this.Titles.Length));
+        this.bodyElement.Add(new MultiDimensionalElement(serializedObject.FindProperty("data"), this.Titles.Length));
     }
     #endregion    
 

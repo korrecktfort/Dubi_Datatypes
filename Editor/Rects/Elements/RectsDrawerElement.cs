@@ -8,7 +8,7 @@ using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class RectsDrawerElement : InspectorGridElement
+public class RectsDrawerElement : InspectorGridElement, OptionsPropertyFieldBind
 {
     #region Enum
     enum ToolState
@@ -127,10 +127,15 @@ public class RectsDrawerElement : InspectorGridElement
         this.RegisterCallback<BlurEvent>(OnBlur);
     }
 
-    public void BindProperty(SerializedProperty rectsProperty)
+
+    public void BindSerializedObject(SerializedObject serializedObject)
     {
-        this.rectsProperty = rectsProperty;
-    }
+        this.rectsProperty = serializedObject?.FindProperty("rects");
+
+        this.parent.style.display = new StyleEnum<DisplayStyle>(this.rectsProperty != null ? DisplayStyle.Flex : DisplayStyle.None);
+
+        ClearManiRect();
+    }    
 
     #region List View & Events
 
@@ -146,10 +151,7 @@ public class RectsDrawerElement : InspectorGridElement
 
     private void ItemsRemoved(IEnumerable<int> obj)
     {
-        this.selectedRectIndex = -1;
-        this.manipulationRect = default;
-
-        base.MarkDirtyRepaint();
+        ClearManiRect();
     }
 
     private void OnItemIndexChanged(int arg1, int arg2)
@@ -488,5 +490,13 @@ public class RectsDrawerElement : InspectorGridElement
 
         return -1;
     }
+
+    void ClearManiRect()
+    {
+        this.selectedRectIndex = -1;
+        this.manipulationRect = default;
+        base.MarkDirtyRepaint();
+    }
+
     #endregion
 }

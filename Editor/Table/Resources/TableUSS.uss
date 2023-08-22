@@ -2,6 +2,11 @@
     transition-duration: 200ms;
     margin-left: 3px;
     background-color: rgb(70, 70, 70);
+    margin-bottom: 3px;
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+    border-top-right-radius: 2px;
+    border-bottom-right-radius: 2px;
 }
 
 .multi-dimensional-element {
@@ -52,20 +57,5 @@
     width: 28px;
     padding-left: 2px;
     padding-top: 2px;
-}
-
-.table-element__options-icon {
-    background-image: resource('settings_FILL1_wght400_GRAD0_opsz48(1)');
-    background-color: rgba(0, 0, 0, 0);
-    -unity-background-image-tint-color: rgb(166, 166, 166);
-    width: 16px;
-    height: 16px;
-}
-
-.table-element__options-icon:hover {
-    background-image: resource('settings_FILL1_wght400_GRAD0_opsz48(1)');
-    background-color: rgba(0, 0, 0, 0);
-    -unity-background-image-tint-color: rgb(219, 219, 219);
-    width: 16px;
-    height: 16px;
+    min-width: 28px;
 }

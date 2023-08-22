@@ -1,0 +1,29 @@
+.options-property-field {
+    flex-direction: row;
+}
+
+.options-property-field__options {
+    background-image: url('project://database/Assets/Plugins/Dubi_Datatypes/Sprites/settings_FILL1_wght400_GRAD0_opsz48(1).png?fileID=2800000&guid=cd4f3615b55e4e042bc1cf33739b40d4&type=3#settings_FILL1_wght400_GRAD0_opsz48(1)');
+    width: 16px;
+    height: 16px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    -unity-background-image-tint-color: rgb(178, 178, 178);
+}
+
+.options-property-field__options:hover {
+    background-image: url('project://database/Assets/Plugins/Dubi_Datatypes/Sprites/settings_FILL1_wght400_GRAD0_opsz48(1).png?fileID=2800000&guid=cd4f3615b55e4e042bc1cf33739b40d4&type=3#settings_FILL1_wght400_GRAD0_opsz48(1)');
+    width: 16px;
+    height: 16px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    -unity-background-image-tint-color: rgb(243, 243, 243);
+}
+
+.options-property-field__property-field {
+    flex-grow: 1;
+}

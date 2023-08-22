@@ -29,3 +29,15 @@
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
 }
+
+.rects-drawer-element__settings {
+    background-image: url('project://database/Assets/Plugins/Dubi_Datatypes/Sprites/settings_FILL1_wght400_GRAD0_opsz48(1).png?fileID=2800000&guid=cd4f3615b55e4e042bc1cf33739b40d4&type=3#settings_FILL1_wght400_GRAD0_opsz48(1)');
+    -unity-background-image-tint-color: rgb(166, 166, 166);
+    width: 16px;
+    height: 16px;
+}
+
+.rects-drawer-element__settings:hover {
+    background-image: url('project://database/Assets/Plugins/Dubi_Datatypes/Sprites/settings_FILL1_wght400_GRAD0_opsz48(1).png?fileID=2800000&guid=cd4f3615b55e4e042bc1cf33739b40d4&type=3#settings_FILL1_wght400_GRAD0_opsz48(1)');
+    -unity-background-image-tint-color: rgb(229, 229, 229);
+}

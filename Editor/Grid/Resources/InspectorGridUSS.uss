@@ -31,6 +31,8 @@
 }
 
 .inspector-grid-parent {
+    margin-left: 3px;
+    margin-bottom: 3px;
 }
 
 .inspector-margin-left {
