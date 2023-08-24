@@ -239,6 +239,9 @@ public class OptionsPropertyField : VisualElement
             return;
 
         File.WriteAllText(AssetDatabase.GetAssetPath(this.iJSON.TextAsset), JsonUtility.ToJson(this.serializedObject.targetObject, true));
+        
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
     void FromJSON()
