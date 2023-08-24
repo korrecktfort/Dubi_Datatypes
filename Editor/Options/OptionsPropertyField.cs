@@ -88,7 +88,15 @@ public class OptionsPropertyField : VisualElement
 
     void CreateScriptableObject()
     {               
-        this.property.objectReferenceValue = ScriptableObject.CreateInstance(this.fieldType);
+        var scriptableObject = ScriptableObject.CreateInstance(this.fieldType);
+
+        if(this.serializedObject == null)
+            throw new ArgumentException("There is no serialized object refrenced.");
+
+        if(scriptableObject == null)
+            throw new ArgumentException("Failed to create Scriptable Object, check usage of this script.");
+
+        this.property.objectReferenceValue = scriptableObject;
         this.property.serializedObject.ApplyModifiedProperties();
 
         this.serializedObject = new SerializedObject(this.property.objectReferenceValue);

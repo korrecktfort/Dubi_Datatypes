@@ -7,6 +7,11 @@ public abstract class Table<T> : ScriptableObject, IJSON
 {
     public TextAsset TextAsset { get => this.textAsset; set => this.textAsset = value; }
 
+    public string[] Titles { get => this.titles; set => this.titles = value; }
+
+    public MultiDimensional<T> Data { get => this.data; set => this.data = value; }
+
+
     [SerializeField] TextAsset textAsset = null;
     [SerializeField] string[] titles = new string[0];
     [SerializeField] MultiDimensional<T> data = new MultiDimensional<T>(new T[0][]);

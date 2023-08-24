@@ -8,6 +8,8 @@ using System.Linq;
 [System.Serializable]
 public class MultiDimensional<T>
 {
+    public SingleDimensional<T>[] Rows => this.rows;
+
     [SerializeField] SingleDimensional<T>[] rows = new SingleDimensional<T>[0];
 
     public MultiDimensional(T[][] table)

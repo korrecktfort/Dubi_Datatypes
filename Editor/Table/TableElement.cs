@@ -1,10 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Linq;
-using System.IO;
 
 public class TableElement : VisualElement, OptionsPropertyFieldBind
 {
@@ -14,7 +12,6 @@ public class TableElement : VisualElement, OptionsPropertyFieldBind
     VisualElement headerElement = null;
     VisualElement headerContent = null;
     VisualElement bodyElement = null;
-    VisualElement optionsIcon = null;
 
     Button addColumn = null;
     SerializedObject serializedTable = null;

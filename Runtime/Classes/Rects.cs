@@ -6,5 +6,5 @@ public class Rects : ScriptableObject, IJSON
     public TextAsset TextAsset { get => textAsset; set => textAsset = value; }
 
     [SerializeField] TextAsset textAsset = null;
-    [SerializeField] Rect[] rects = new Rect[0];
+    [SerializeField] Rect[] rects = null;
 }
