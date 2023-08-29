@@ -90,9 +90,6 @@ public class OptionsPropertyField : VisualElement
     {               
         var scriptableObject = ScriptableObject.CreateInstance(this.fieldType);
 
-        if(this.serializedObject == null)
-            throw new ArgumentException("There is no serialized object refrenced.");
-
         if(scriptableObject == null)
             throw new ArgumentException("Failed to create Scriptable Object, check usage of this script.");
 
@@ -100,6 +97,9 @@ public class OptionsPropertyField : VisualElement
         this.property.serializedObject.ApplyModifiedProperties();
 
         this.serializedObject = new SerializedObject(this.property.objectReferenceValue);
+
+        if(this.serializedObject == null)
+            throw new ArgumentException("There is no serialized object refrenced.");
 
         BindSerializedObject(this.serializedObject);
     }
